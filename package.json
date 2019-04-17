@@ -4,6 +4,9 @@
   "description": "Serviço que minera os dados do segundo tópico do realtime, filtrando os veiculos que estão perto de algum ponto de parada e repassando os dados para uma segunda fila no rabbit, de onde serão processados para gerar dados de historico em outro serviço.",
   "main": "src/main.ts",
   "scripts": {
+    "rabbitmq": "docker run -d --hostname rabbitMQ --name rabbitmq-srv -p 5672:5672 -p 8080:15672 rabbitmq:3-management",
+    "stop:rabbitmq": "docker stop rabbitmq-srv && docker rm rabbitmq-srv",
+    "stop:all": "docker stop $(docker ps -q -a) && docker rm $(docker ps -q -a)",
     "start": "ts-node -r tsconfig-paths/register src/main.ts"
   },
   "repository": {
@@ -14,6 +17,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^11.13.4",
+    "@types/amqplib": "^0.5.11",
+    "@types/dotenv": "^6.1.1",
     "rimraf": "^2.6.3",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.1.0",
@@ -21,7 +26,7 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
-    "@types/dotenv": "^6.1.1",
+    "amqplib": "^0.5.3",
     "dotenv": "^7.0.0"
   }
 }
