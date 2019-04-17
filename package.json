@@ -1,0 +1,27 @@
+{
+  "name": "miner",
+  "version": "0.0.0",
+  "description": "Serviço que minera os dados do segundo tópico do realtime, filtrando os veiculos que estão perto de algum ponto de parada e repassando os dados para uma segunda fila no rabbit, de onde serão processados para gerar dados de historico em outro serviço.",
+  "main": "src/main.ts",
+  "scripts": {
+    "start": "ts-node -r tsconfig-paths/register src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner.git"
+  },
+  "author": "Mateus Garcia",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^11.13.4",
+    "rimraf": "^2.6.3",
+    "ts-loader": "^5.3.3",
+    "ts-node": "^8.1.0",
+    "tsconfig-paths": "^3.8.0",
+    "typescript": "^3.4.3"
+  },
+  "dependencies": {
+    "@types/dotenv": "^6.1.1",
+    "dotenv": "^7.0.0"
+  }
+}
