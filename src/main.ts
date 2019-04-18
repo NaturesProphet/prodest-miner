@@ -5,12 +5,14 @@ if ( process.env.NODE_ENV != 'production' ) {
 import * as redis from './services/redis.service';
 import * as rabbitConf from './common/rabbit.config';
 import *as rabbit from './services/rabbit.service';
+import { Channel } from 'amqplib';
 
 async function main () {
 
     const redisConnection = redis.getConnection();
     await redis.sendPontosToRedis( redisConnection );
-    const consumerChannel = await rabbit.getConsumerChannel();
+    const consumerChannel: Channel = await rabbit.getConsumerChannel();
+    const publishChannel: Channel = await rabbit.getPublishChannel();
 
     await consumerChannel.consume( rabbitConf.rabbitConsumeQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
@@ -19,14 +21,14 @@ async function main () {
             latitude: veiculo.LATITUDE
         };
         let PontosProximos: any[] = await redis.getPontosProximos( redisConnection, LongLat );
-        consumerChannel.ack( msg );
         if ( PontosProximos != undefined && PontosProximos.length != 0 ) {
             let msgToRabbit = {
                 veiculo: veiculo,
                 pontosProximos: PontosProximos
             }
-            console.log( msgToRabbit )
+            publishChannel.sendToQueue( rabbitConf.rabbitPublishQueueName, new Buffer( JSON.stringify( msgToRabbit ) ), { persistent: false } );
         }
+        consumerChannel.ack( msg );
     } );
 }
 

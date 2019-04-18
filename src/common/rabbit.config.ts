@@ -4,6 +4,7 @@ export const rabbitUser: string = process.env.MINER_RABBIT_USER;
 export const rabbitPassword: string = process.env.MINER_RABBIT_PASSWORD;
 export const rabbitTopicName: string = process.env.MINER_RABBIT_TOPIC_NAME;
 export const rabbitConsumeQueueName: string = process.env.MINER_RABBIT_CONSUMER_QUEUE_NAME;
+export const rabbitPublishQueueName: string = process.env.MINER_RABBIT_PUBLISH_QUEUE_NAME;
 export const rabbitRoutingKey: string = process.env.MINER_RABBIT_ROUTING_KEY;
 
 
