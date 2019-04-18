@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import * as dotenv from 'dotenv';
 if ( process.env.NODE_ENV != 'production' ) {
     dotenv.config();
@@ -44,7 +42,7 @@ async function main () {
     }
 
     try {
-        await channel.assertQueue( conf.rabbitConsumeQueueName, { exclusive: true, messageTtl: 30000 } );
+        await channel.assertQueue( conf.rabbitConsumeQueueName, { messageTtl: 30000, durable: false } );
     } catch ( err ) {
         console.log( `[ ERRO ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
         process.exit( 1 );
@@ -69,16 +67,3 @@ async function main () {
 main();
 
 
-
-
-
-
-
-
-
-// try {
-
-// } catch ( err ) {
-//     console.log( `[ ERRO ] Falha ao ${err.message}` );
-//     process.exit( 1 );
-// }
