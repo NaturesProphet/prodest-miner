@@ -57,10 +57,10 @@ async function main () {
         process.exit( 1 );
     }
 
-
     await channel.consume( conf.rabbitConsumeQueueName, function ( msg ) {
-        console.log( JSON.stringify( JSON.parse( msg.content.toString() ), null, 2 ) )
-
+        let veiculo = JSON.parse( msg.content.toString() );
+        console.log( veiculo )
+        channel.ack( msg )
     } );
 
 
