@@ -2,66 +2,32 @@ import * as dotenv from 'dotenv';
 if ( process.env.NODE_ENV != 'production' ) {
     dotenv.config();
 }
-import * as amqp from 'amqplib';
-import * as conf from './common/rabbit.config';
+import * as redis from './services/redis.service';
+import * as rabbitConf from './common/rabbit.config';
+import *as rabbit from './services/rabbit.service';
 
 async function main () {
 
-    let conn: amqp.Connection;
-    let channel: amqp.Channel;
+    const redisConnection = redis.getConnection();
+    await redis.sendPontosToRedis( redisConnection );
+    const consumerChannel = await rabbit.getConsumerChannel();
 
-    const amqpOptions: amqp.Options.Connect = {
-        hostname: conf.rabbitHost,
-        locale: 'pt-br',
-        port: conf.rabbitPort,
-        username: conf.rabbitUser,
-        password: conf.rabbitPassword
-    };
-
-
-
-    try {
-        conn = await amqp.connect( amqpOptions );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao tentar se conectar ao rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
-
-    try {
-        channel = await conn.createChannel();
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao declarar um canal no rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
-
-    try {
-        await channel.assertExchange( conf.rabbitTopicName, 'topic', { durable: false } );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao declarar um topico no rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
-
-    try {
-        await channel.assertQueue( conf.rabbitConsumeQueueName, { messageTtl: 30000, durable: false } );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
-
-    try {
-        await channel.bindQueue( conf.rabbitConsumeQueueName, conf.rabbitTopicName, conf.rabbitRoutingKey );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao configurar a chave de roteamento. ${err.message}` );
-        process.exit( 1 );
-    }
-
-    await channel.consume( conf.rabbitConsumeQueueName, function ( msg ) {
+    await consumerChannel.consume( rabbitConf.rabbitConsumeQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
-        console.log( veiculo )
-        channel.ack( msg )
+        let LongLat = {
+            longitude: veiculo.LONGITUDE,
+            latitude: veiculo.LATITUDE
+        };
+        let PontosProximos: any[] = await redis.getPontosProximos( redisConnection, LongLat );
+        consumerChannel.ack( msg );
+        if ( PontosProximos != undefined && PontosProximos.length != 0 ) {
+            let msgToRabbit = {
+                veiculo: veiculo,
+                pontosProximos: PontosProximos
+            }
+            console.log( msgToRabbit )
+        }
     } );
-
-
 }
 
 main();

@@ -5,8 +5,12 @@
   "main": "src/main.ts",
   "scripts": {
     "clean": "rm -R node_modules",
+    "redis": "docker run --name redis-srv -d -p 6379:6379 redis",
+    "stop:redis": "docker stop redis-srv && docker rm redis-srv",
     "rabbitmq": "docker run -d --hostname rabbitMQ --name rabbitmq-srv -p 5672:5672 -p 8080:15672 rabbitmq:3-management",
     "stop:rabbitmq": "docker stop rabbitmq-srv && docker rm rabbitmq-srv",
+    "mssql": "docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Senh@Dif1cil' -p 1433:1433 -v /DOCKER-VOLUMES/api-ceturb/mssql:/var/opt/mssql --name sql-server-persistent -d microsoft/mssql-server-linux",
+    "stop:mssql": "docker stop sql-server-persistent && docker rm sql-server-persistent",
     "stop:all": "docker stop $(docker ps -q -a) && docker rm $(docker ps -q -a)",
     "start": "ts-node -r tsconfig-paths/register src/main.ts"
   },
@@ -18,8 +22,10 @@
   "license": "ISC",
   "devDependencies": {
     "@types/amqplib": "^0.5.11",
+    "@types/bluebird": "^3.5.26",
     "@types/dotenv": "^6.1.1",
     "@types/node": "^11.13.4",
+    "@types/redis": "^2.8.12",
     "rimraf": "^2.6.3",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.1.0",
@@ -28,7 +34,9 @@
   },
   "dependencies": {
     "amqplib": "^0.5.3",
+    "bluebird": "^3.5.4",
     "dotenv": "^7.0.0",
-    "mssql": "^5.1.0"
+    "mssql": "^5.1.0",
+    "redis": "^2.8.0"
   }
 }

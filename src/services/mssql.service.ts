@@ -23,8 +23,10 @@ export async function getPontos (): Promise<any> {
         console.log( 'Carregando os dados de pontos' );
 
         let result = await sql.query( queryPontos );
+        sql.close()
         if ( result.recordset != undefined ) {
-            console.log( `${result.recordset.length - 1} viagens carregadas.\n` );
+            console.log( `${result.recordset.length} pontos carregados.\n` );
+            return result.recordset;
         }
 
     } catch ( err ) {
