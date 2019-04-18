@@ -3,7 +3,7 @@ if ( process.env.NODE_ENV != 'production' ) {
     dotenv.config();
 }
 import * as amqp from 'amqplib';
-import * as conf from './common/configs';
+import * as conf from './common/rabbit.config';
 
 async function main () {
 
