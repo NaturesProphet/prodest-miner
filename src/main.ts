@@ -44,7 +44,7 @@ async function main () {
     }
 
     try {
-        await channel.assertQueue( conf.rabbitConsumeQueueName, { exclusive: true } );
+        await channel.assertQueue( conf.rabbitConsumeQueueName, { exclusive: true, messageTtl: 30000 } );
     } catch ( err ) {
         console.log( `[ ERRO ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
         process.exit( 1 );
