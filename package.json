@@ -26,6 +26,7 @@
     "@types/dotenv": "^6.1.1",
     "@types/node": "^11.13.4",
     "@types/redis": "^2.8.12",
+    "@types/request-promise": "^4.1.42",
     "rimraf": "^2.6.3",
     "ts-loader": "^5.3.3",
     "ts-node": "^8.1.0",
@@ -37,6 +38,8 @@
     "bluebird": "^3.5.4",
     "dotenv": "^7.0.0",
     "mssql": "^5.1.0",
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
   }
 }
