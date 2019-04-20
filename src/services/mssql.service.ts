@@ -18,7 +18,7 @@ export async function getPontos (): Promise<any> {
     try {
         await sql.connect( mssqlConnectionString );
 
-        const queryPontos: string = 'SELECT id_geocontrol, codigo, latitude, longitude FROM ponto';
+        const queryPontos: string = 'SELECT id, codigo, latitude, longitude FROM ponto';
 
         console.log( 'Carregando os dados de pontos' );
 
@@ -28,6 +28,7 @@ export async function getPontos (): Promise<any> {
             console.log( `${result.recordset.length} pontos carregados.\n` );
             return result.recordset;
         }
+        await sql.close();
 
     } catch ( err ) {
         let msg = `Erro ao consultar o banco estático\n${err.message}`;

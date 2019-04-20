@@ -11,9 +11,9 @@ import * as sql from 'mssql';
 
 
 async function main () {
-    await sql.connect( mssqlConnectionString );
     const redisConnection = redis.getConnection();
     await redis.sendPontosToRedis( redisConnection );
+    await sql.connect( mssqlConnectionString );
     const consumerChannel: Channel = await rabbit.getConsumerChannel();
     //const publishChannel: Channel = await rabbit.getPublishChannel();
     console.log( 'Job iniciado! Os dados já estão sendo processados.\n' )

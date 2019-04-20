@@ -7,7 +7,6 @@ import * as redis from 'redis';
 bluebird.promisifyAll( redis.RedisClient.prototype );
 bluebird.promisifyAll( redis.Multi.prototype );
 import * as conf from '../common/redis.config';
-import * as restClient from './restClient.service';
 import * as sqlService from './mssql.service';
 
 
@@ -35,24 +34,16 @@ export async function sendPontosToRedis ( redisConnection ) {
 
     let pontos: any[];
     try {
-        pontos = await restClient.getPontos();
+        pontos = await sqlService.getPontos();
     } catch ( err ) {
         console.log( `Falha ao tentar recuperar a lista de pontos da api REST. ${err.message}` );
-        console.log( 'Tentando com o banco estatico..' );
-        try {
-            pontos = await sqlService.getPontos();
-        } catch ( err ) {
-            console.log( `Falha ao tentar recuperar a lista de pontos do banco estatico. ${err.message}` );
-            process.exit( 1 );
-        }
+        process.exit( 1 );
     }
     console.log( 'Carregando coordenadas de pontos no redis...' );
     for ( let ponto = 0; ponto < pontos.length; ponto++ ) {
         let id: number;
         if ( pontos[ ponto ].id != undefined ) {
             id = pontos[ ponto ].id
-        } else {
-            id = pontos[ ponto ].id_geocontrol
         }
         let longitude = pontos[ ponto ].longitude;
         let latitude = pontos[ ponto ].latitude;

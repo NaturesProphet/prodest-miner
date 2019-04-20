@@ -2,7 +2,7 @@ import * as request from 'request-promise';
 import { pontosRestURL } from '../common/rest.config';
 
 
-export async function getPontos (): Promise<any> {
+async function getPontos (): Promise<any> {
 
     const options = {
         uri: pontosRestURL,
