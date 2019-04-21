@@ -37,10 +37,10 @@ async function main () {
 
                 let rot: string = msgToRabbit.veiculo.ROTULO;
                 let hrchegada: Date = new Date( veiculo.DATAHORA );
-                hrchegada.setUTCHours( hrchegada.getUTCHours() + 3 );
+                hrchegada.setUTCHours( hrchegada.getUTCHours() + 2 );
                 let chegada = hrchegada.toISOString();
                 let hrsaida: Date = new Date( veiculo.DATAHORA );
-                hrsaida.setUTCHours( hrsaida.getUTCHours() - 3 );
+                hrsaida.setUTCHours( hrsaida.getUTCHours() - 2 );
                 let saida = hrsaida.toISOString();
 
                 let statement1 = `SELECT viagem.id, viagem.itinerario_id FROM viagem `
