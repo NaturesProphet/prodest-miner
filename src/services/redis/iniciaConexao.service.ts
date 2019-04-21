@@ -9,7 +9,7 @@ bluebird.promisifyAll( redis.Multi.prototype );
 import * as conf from '../../common/redis.config';
 
 
-export function IniciaRedisConnection () {
+export function IniciaConexaoRedis () {
     const redisOptions = {
         host: conf.redisHost,
         port: conf.redisPort

@@ -12,7 +12,7 @@ import { PontoXOrdem } from './DTOs/PontoXOrdem.interface';
 import { VeiculoXPonto } from './DTOs/VeiculoXPonto.interface';
 import { salvaHistoria } from './services/mssql/salvaHistoria.service';
 import { iniciaConexaoSql } from './services/mssql/iniciaConexao.service';
-import { IniciaRedisConnection } from './services/redis/iniciaConexao.service';
+import { IniciaConexaoRedis } from './services/redis/iniciaConexao.service';
 import { sendPontosToRedis } from './services/redis/sendPontosToRedis.service';
 import { getPontosProximos } from './services/redis/getPontosProximos.service';
 import { getConsumerChannel } from './services/rabbitmq/getConsumerChannel.service';
@@ -23,7 +23,7 @@ async function main () {
 
     let SqlConnection: ConnectionPool = await iniciaConexaoSql();
 
-    const redisConnection = IniciaRedisConnection();
+    const redisConnection = IniciaConexaoRedis();
     await sendPontosToRedis( SqlConnection, redisConnection );
     const consumerChannel: Channel = await getConsumerChannel();
     //const publishChannel: Channel = await getPublishChannel();
