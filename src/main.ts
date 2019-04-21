@@ -61,32 +61,45 @@ async function main () {
                         let result2 = await sql.query( statement2 );
                         let inicial: boolean = false;
                         let final: boolean = false;
+                        let ordem: number;
                         if ( result2.recordset.length > 0 ) {
-                            if ( pontoId == result2.recordset[ 0 ].ponto_id ) {
-                                inicial = true;
-                            }
-                            if ( pontoId == result2.recordset[ result2.recordset.length - 1 ].ponto_id ) {
-                                final = true;
-                            }
-                            let q2 = msgToRabbit.veiculo.DATAHORA;
-                            let q3 = new Date( veiculo.DATAHORA ).toISOString();
-                            let q4 = msgToRabbit.veiculo.VELOCIDADE;
-                            let q5 = msgToRabbit.veiculo.IGNICAO;
+                            let pontoXOrdem: any;
+                            result2.recordset.forEach( element => {
+                                if ( element.ponto_id == pontoId ) {
+                                    pontoXOrdem = {
+                                        ponto: element.ponto_id,
+                                        ordem: element.ordem
+                                    }
+                                }
+                            } );
 
-                            let statement3 = `INSERT INTO VeiculoXPontos `
-                                + `(veiculo, datahoraMillis, datahora, velocidade, ignicao, ponto_id, `
-                                + `itinerario_id, viagem_id, pontoInicial, pontoFinal) `
-                                + `VALUES ( '${rot}', ${q2}, '${q3}', ${q4}, '${q5}', ${pontoId}, `
-                                + `${itinerarioId}, ${viagemId}, '${inicial}', '${final}' )`;
+                            if ( pontoXOrdem != undefined ) {
+                                if ( pontoId == pontoXOrdem.ponto ) {
+                                    inicial = true;
+                                }
+                                if ( pontoId == pontoXOrdem.ponto ) {
+                                    final = true;
+                                }
+                                let q2 = msgToRabbit.veiculo.DATAHORA;
+                                let q3 = new Date( veiculo.DATAHORA ).toISOString();
+                                let q4 = msgToRabbit.veiculo.VELOCIDADE;
+                                let q5 = msgToRabbit.veiculo.IGNICAO;
 
-                            try {
-                                await sql.query( statement3 );
-                            } catch ( err ) {
-                                console.log( '-------------------------------------------' )
-                                let msg = `Erro ao salvar um historico no banco estático\n${err.message}`;
-                                console.log( msg );
-                                console.log( `Query3: ${statement3}` );
-                                console.log( '-------------------------------------------' )
+                                let statement3 = `INSERT INTO VeiculoXPontos `
+                                    + `(veiculo, datahoraMillis, datahora, velocidade, ignicao, ponto_id, `
+                                    + `itinerario_id, viagem_id, pontoInicial, pontoFinal) `
+                                    + `VALUES ( '${rot}', ${q2}, '${q3}', ${q4}, '${q5}', ${pontoId}, `
+                                    + `${itinerarioId}, ${viagemId}, '${inicial}', '${final}' )`;
+
+                                try {
+                                    await sql.query( statement3 );
+                                } catch ( err ) {
+                                    console.log( '-------------------------------------------' )
+                                    let msg = `Erro ao salvar um historico no banco estático\n${err.message}`;
+                                    console.log( msg );
+                                    console.log( `Query3: ${statement3}` );
+                                    console.log( '-------------------------------------------' )
+                                }
                             }
                         }
                     } catch ( err ) {
