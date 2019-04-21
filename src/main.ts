@@ -74,6 +74,7 @@ async function main () {
                             } );
 
                             if ( pontoXOrdem != undefined ) {
+                                ordem = pontoXOrdem.ordem;
                                 if ( pontoId == pontoXOrdem.ponto ) {
                                     inicial = true;
                                 }
@@ -87,9 +88,9 @@ async function main () {
 
                                 let statement3 = `INSERT INTO VeiculoXPontos `
                                     + `(veiculo, datahoraMillis, datahora, velocidade, ignicao, ponto_id, `
-                                    + `itinerario_id, viagem_id, pontoInicial, pontoFinal) `
+                                    + `itinerario_id, viagem_id, pontoInicial, pontoFinal, sequencia) `
                                     + `VALUES ( '${rot}', ${q2}, '${q3}', ${q4}, '${q5}', ${pontoId}, `
-                                    + `${itinerarioId}, ${viagemId}, '${inicial}', '${final}' )`;
+                                    + `${itinerarioId}, ${viagemId}, '${inicial}', '${final}', ${ordem} )`;
 
                                 try {
                                     await sql.query( statement3 );
