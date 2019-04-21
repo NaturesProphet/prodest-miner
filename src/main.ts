@@ -2,40 +2,48 @@ import * as dotenv from 'dotenv';
 if ( process.env.NODE_ENV != 'production' ) {
     dotenv.config();
 }
-import * as redis from './services/redis.service';
 import * as rabbitConf from './common/rabbit.config';
-import * as rabbit from './services/rabbit.service';
 import { Channel } from 'amqplib';
-import { mssqlConnectionString } from './common/mssql.config';
-import * as sql from 'mssql';
+import { ConnectionPool } from 'mssql';
+import { ViagemQueryObject } from './DTOs/viagemQuery.interface';
+import { getViagem } from './services/mssql/getViagem.service';
+import { getSequenciaPontos } from './services/mssql/getSequenciaPontos.service';
+import { PontoXOrdem } from './DTOs/PontoXOrdem.interface';
+import { VeiculoXPonto } from './DTOs/VeiculoXPonto.interface';
+import { salvaHistoria } from './services/mssql/salvaHistoria.service';
+import { iniciaConexaoSql } from './services/mssql/iniciaConexao.service';
+import { IniciaRedisConnection } from './services/redis/iniciaConexao.service';
+import { sendPontosToRedis } from './services/redis/sendPontosToRedis.service';
+import { getPontosProximos } from './services/redis/getPontosProximos.service';
+import { getConsumerChannel } from './services/rabbitmq/getConsumerChannel.service';
+//import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service';
 
 
 async function main () {
-    const redisConnection = redis.getConnection();
-    await redis.sendPontosToRedis( redisConnection );
-    await sql.connect( mssqlConnectionString );
-    const consumerChannel: Channel = await rabbit.getConsumerChannel();
-    //const publishChannel: Channel = await rabbit.getPublishChannel();
+
+    let SqlConnection: ConnectionPool = await iniciaConexaoSql();
+
+    const redisConnection = IniciaRedisConnection();
+    await sendPontosToRedis( SqlConnection, redisConnection );
+    const consumerChannel: Channel = await getConsumerChannel();
+    //const publishChannel: Channel = await getPublishChannel();
+
+
     console.log( 'Job iniciado! Os dados já estão sendo processados.\n' )
     await consumerChannel.consume( rabbitConf.rabbitConsumeQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
-        if ( veiculo != undefined && veiculo.IGNICAO == true ) {
+        if ( veiculo != undefined && veiculo.IGNICAO ) {
+
             let LongLat = {
                 longitude: veiculo.LONGITUDE,
                 latitude: veiculo.LATITUDE
             };
-            let PontosProximos: any[] = await redis.getPontosProximos( redisConnection, LongLat );
+
+            let PontosProximos: any[] = await getPontosProximos( redisConnection, LongLat );
             if ( PontosProximos != undefined && PontosProximos.length != 0 ) {
                 veiculo.DATAHORA = veiculo.DATAHORA - 10800000; // converte para hora local, utc-3
-                let msgToRabbit = {
-                    veiculo: veiculo,
-                    pontosProximos: PontosProximos
-                }
-                //console.log( msgToRabbit );
-                //publishChannel.sendToQueue( rabbitConf.rabbitPublishQueueName, new Buffer( JSON.stringify( msgToRabbit ) ), { persistent: false } );
 
-
-                let rot: string = msgToRabbit.veiculo.ROTULO;
+                let veiculoDaVez: string = veiculo.ROTULO;
                 let hrchegada: Date = new Date( veiculo.DATAHORA );
                 hrchegada.setUTCHours( hrchegada.getUTCHours() + 2 );
                 let chegada = hrchegada.toISOString();
@@ -43,83 +51,66 @@ async function main () {
                 hrsaida.setUTCHours( hrsaida.getUTCHours() - 2 );
                 let saida = hrsaida.toISOString();
 
-                let statement1 = `SELECT viagem.id, viagem.itinerario_id FROM viagem `
-                    + `INNER JOIN itinerario ON viagem.itinerario_id = itinerario.id `
-                    + `where veiculo = '${rot}' and horadachegada < '${chegada}' `
-                    + `and horadasaida BETWEEN '${saida}' and '${new Date( veiculo.DATAHORA ).toISOString()}' `;
-                //console.log( statement1 )
-                try {
-
-                    let result1 = await sql.query( statement1 );
-                    if ( result1.recordset.length > 0 ) {
-                        let viagemId = result1.recordset[ 0 ].id;
-                        let itinerarioId = result1.recordset[ 0 ].itinerario_id
-                        let pontoId = msgToRabbit.pontosProximos[ 0 ];
-
-                        let statement2 = `SELECT ponto_id, ordem FROM itinerario_ponto `
-                            + `WHERE itinerario_id = ${itinerarioId} ORDER BY ordem`;
-                        try {
-                            let result2 = await sql.query( statement2 );
-                            let inicial: number = 0;
-                            let final: number = 0;
-                            let ordem: number;
-                            if ( result2.recordset.length > 0 ) {
-                                let pontoXOrdem: any;
-                                result2.recordset.forEach( element => {
-                                    if ( element.ponto_id == pontoId ) {
-                                        pontoXOrdem = {
-                                            ponto: element.ponto_id,
-                                            ordem: element.ordem
-                                        }
-                                    }
-                                } );
-
-                                if ( pontoXOrdem != undefined ) {
-                                    ordem = pontoXOrdem.ordem;
-                                    if ( pontoId == result2.recordset[ 0 ].ponto_id ) {
-                                        inicial = 1;
-                                    }
-                                    if ( pontoId == result2.recordset[ result2.recordset.length - 1 ].ponto_id ) {
-                                        final = 1;
-                                    }
-                                    let q2 = msgToRabbit.veiculo.DATAHORA;
-                                    let q3 = new Date( veiculo.DATAHORA ).toISOString();
-                                    let q4 = msgToRabbit.veiculo.VELOCIDADE;
-                                    let q5 = msgToRabbit.veiculo.IGNICAO;
-
-                                    let statement3 = `INSERT INTO VeiculoXPontos `
-                                        + `(veiculo, datahoraMillis, datahora, velocidade, ignicao, ponto_id, `
-                                        + `itinerario_id, viagem_id, pontoInicial, pontoFinal, sequencia) `
-                                        + `VALUES ( '${rot}', ${q2}, '${q3}', ${q4}, '${q5}', ${pontoId}, `
-                                        + `${itinerarioId}, ${viagemId}, ${inicial}, ${final}, ${ordem} )`;
-
-                                    try {
-                                        await sql.query( statement3 );
-                                    } catch ( err ) {
-                                        console.log( '-------------------------------------------' )
-                                        let msg = `Erro ao salvar um historico no banco estático\n${err.message}`;
-                                        console.log( msg );
-                                        console.log( `Query3: ${statement3}` );
-                                        console.log( '-------------------------------------------' )
-                                    }
-                                }
-                            }
-                        } catch ( err ) {
-                            console.log( '-------------------------------------------' )
-                            console.log( `Erro ao buscar pontos do itinerario ${itinerarioId}.` );
-                            console.log( err.message );
-                            console.log( `Query2: ${statement2} ` )
-                            console.log( '-------------------------------------------' )
-                        }
-                    } else {
-                        //console.log( `Itinerario e viagem para o veiculo ${ rot } não encontrados` )
-                    }
-                } catch ( err ) {
-                    let msg = `Erro ao buscar viagens no banco estático\n${err.message}
-                                    query1: ${ statement1} `;
-                    console.log( msg );
+                let dadosViagem: ViagemQueryObject = {
+                    rota: veiculoDaVez,
+                    horaChegada: chegada,
+                    horaSaida: saida,
+                    horaAgora: new Date( veiculo.DATAHORA ).toISOString()
                 }
 
+                let viagemDaVez = await getViagem( SqlConnection, dadosViagem );
+
+                if ( viagemDaVez.length > 0 ) {
+                    let viagemId = viagemDaVez[ 0 ].id;
+                    let itinerarioId = viagemDaVez[ 0 ].itinerario_id
+                    let pontoId = PontosProximos[ 0 ];
+                    let sequenciaPontos = await getSequenciaPontos( SqlConnection, itinerarioId );
+                    let inicial: 1 | 0 = 0;
+                    let final: 1 | 0 = 0;
+                    let ordem: number;
+
+                    if ( sequenciaPontos.length > 0 ) {
+                        let pontoEordemAtual: PontoXOrdem;
+                        sequenciaPontos.forEach( element => {
+                            if ( element.ponto_id == pontoId ) {
+                                pontoEordemAtual = {
+                                    ponto: element.ponto_id,
+                                    ordem: element.ordem
+                                }
+                            }
+                        } );
+
+                        if ( pontoEordemAtual != undefined ) {
+                            ordem = pontoEordemAtual.ordem;
+                            if ( pontoId == sequenciaPontos[ 0 ].ponto_id ) {
+                                inicial = 1;
+                            }
+                            if ( pontoId == sequenciaPontos[ sequenciaPontos.length - 1 ].ponto_id ) {
+                                final = 1;
+                            }
+
+                            let historia: VeiculoXPonto = {
+                                rotulo: veiculoDaVez,
+                                datahoraMillis: veiculo.DATAHORA,
+                                datahoraLegivel: new Date( veiculo.DATAHORA ).toISOString(),
+                                velocidade: veiculo.VELOCIDADE,
+                                ignicao: veiculo.IGNICAO,
+                                pontoId: pontoId,
+                                itinerarioId: itinerarioId,
+                                viagemId: viagemId,
+                                pontoInicial: inicial,
+                                pontoFinal: final,
+                                sequencia: ordem
+                            }
+                            await salvaHistoria( SqlConnection, historia );
+                            // publishChannel.sendToQueue(
+                            //     rabbitConf.rabbitPublishQueueName,
+                            //     new Buffer( JSON.stringify( historia ) ),
+                            //     { persistent: false }
+                            // );
+                        }
+                    }
+                }
             }
 
         }
@@ -128,5 +119,3 @@ async function main () {
 }
 
 main();
-
-

@@ -34,6 +34,7 @@
     "typescript": "^3.4.3"
   },
   "dependencies": {
+    "@types/mssql": "^4.0.13",
     "amqplib": "^0.5.3",
     "bluebird": "^3.5.4",
     "dotenv": "^7.0.0",
