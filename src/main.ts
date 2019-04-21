@@ -60,8 +60,8 @@ async function main () {
                             + `WHERE itinerario_id = ${itinerarioId} ORDER BY ordem`;
                         try {
                             let result2 = await sql.query( statement2 );
-                            let inicial: boolean = false;
-                            let final: boolean = false;
+                            let inicial: number = 0;
+                            let final: number = 0;
                             let ordem: number;
                             if ( result2.recordset.length > 0 ) {
                                 let pontoXOrdem: any;
@@ -76,11 +76,11 @@ async function main () {
 
                                 if ( pontoXOrdem != undefined ) {
                                     ordem = pontoXOrdem.ordem;
-                                    if ( pontoId == pontoXOrdem.ponto ) {
-                                        inicial = true;
+                                    if ( pontoId == result2.recordset[ 0 ].ponto_id ) {
+                                        inicial = 1;
                                     }
-                                    if ( pontoId == pontoXOrdem.ponto ) {
-                                        final = true;
+                                    if ( pontoId == result2.recordset[ result2.recordset.length - 1 ].ponto_id ) {
+                                        final = 1;
                                     }
                                     let q2 = msgToRabbit.veiculo.DATAHORA;
                                     let q3 = new Date( veiculo.DATAHORA ).toISOString();
@@ -91,7 +91,7 @@ async function main () {
                                         + `(veiculo, datahoraMillis, datahora, velocidade, ignicao, ponto_id, `
                                         + `itinerario_id, viagem_id, pontoInicial, pontoFinal, sequencia) `
                                         + `VALUES ( '${rot}', ${q2}, '${q3}', ${q4}, '${q5}', ${pontoId}, `
-                                        + `${itinerarioId}, ${viagemId}, '${inicial}', '${final}', ${ordem} )`;
+                                        + `${itinerarioId}, ${viagemId}, ${inicial}, ${final}, ${ordem} )`;
 
                                     try {
                                         await sql.query( statement3 );
