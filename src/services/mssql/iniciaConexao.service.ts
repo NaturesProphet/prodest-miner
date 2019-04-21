@@ -12,7 +12,7 @@ export async function iniciaConexaoSql (): Promise<ConnectionPool> {
             await pool.connect();
             return pool;
         } catch ( err ) {
-            console.log( `Falhou ao tentar inicializar a conexão com o banco estático. ${err.message}` );
+            console.log( `[ iniciaConexaoSql ] Falhou ao tentar inicializar a conexão com o banco estático. ${err.message}` );
         }
     }
 }

@@ -18,6 +18,6 @@ export function IniciaConexaoRedis () {
         let redisClient = redis.createClient( redisOptions );
         return redisClient;
     } catch ( err ) {
-        console.log( `Erro ao tentar abrir a conexão com o redis. ${err.message}` );
+        console.log( `[ IniciaConexaoRedis ] Erro ao tentar abrir a conexão com o redis. ${err.message}` );
     }
 }

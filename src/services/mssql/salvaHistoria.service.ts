@@ -23,7 +23,7 @@ export async function salvaHistoria ( pool: ConnectionPool, dados: VeiculoXPonto
             return result.recordset;
         }
     } catch ( err ) {
-        let msg = `[ getViagem ] Erro ao consultar viagens no banco estático\n${err.message} `;
+        let msg = `[ salvaHistorico ] Erro ao consultar viagens no banco estático\n${err.message} `;
         console.log( msg );
     }
 }

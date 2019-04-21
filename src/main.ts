@@ -28,8 +28,9 @@ async function main () {
     const consumerChannel: Channel = await getConsumerChannel();
     //const publishChannel: Channel = await getPublishChannel();
 
-
-    console.log( 'Job iniciado! Os dados já estão sendo processados.\n' )
+    console.log( '\n-----------------------------------------------------------' );
+    console.log( `[ ${new Date().toString()} ]\nO Miner iniciou com sucesso!` );
+    console.log( '-----------------------------------------------------------\n\n' );
     await consumerChannel.consume( rabbitConf.rabbitConsumeQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
         if ( veiculo != undefined && veiculo.IGNICAO ) {

@@ -3,7 +3,6 @@ if ( process.env.NODE_ENV != 'production' ) {
     dotenv.config();
 }
 import { ConnectionPool } from 'mssql';
-import { ViagemQueryObject } from 'DTOs/viagemQuery.interface';
 
 
 export async function getSequenciaPontos ( pool: ConnectionPool, itinerarioId: number ): Promise<any> {

@@ -10,40 +10,42 @@ import * as amqp from 'amqplib';
 export async function getConsumerChannel (): Promise<amqp.Channel> {
     let conn: amqp.Connection;
     let channel: amqp.Channel;
+    while ( channel == undefined ) {
 
-    try {
-        conn = await amqp.connect( conf.amqpOptions );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao tentar se conectar ao rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
+        try {
+            conn = await amqp.connect( conf.amqpOptions );
+        } catch ( err ) {
+            console.log( `[ getConsumerChannel ] Falha ao tentar se conectar ao rabbitMQ. ${err.message}` );
+        }
+        if ( conn ) {
+            try {
+                channel = await conn.createChannel();
+            } catch ( err ) {
+                console.log( `[ getConsumerChannel ] Falha ao declarar um canal no rabbitMQ. ${err.message}` );
+                channel = undefined;
+            }
 
-    try {
-        channel = await conn.createChannel();
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao declarar um canal no rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
+            try {
+                await channel.assertExchange( conf.rabbitTopicName, 'topic', { durable: false } );
+            } catch ( err ) {
+                console.log( `[ getConsumerChannel ] Falha ao declarar um topico no rabbitMQ. ${err.message}` );
+                channel = undefined;
+            }
 
-    try {
-        await channel.assertExchange( conf.rabbitTopicName, 'topic', { durable: false } );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao declarar um topico no rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
+            try {
+                await channel.assertQueue( conf.rabbitConsumeQueueName, { messageTtl: 30000, durable: false } );
+            } catch ( err ) {
+                console.log( `[ getConsumerChannel ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
+                channel = undefined;
+            }
 
-    try {
-        await channel.assertQueue( conf.rabbitConsumeQueueName, { messageTtl: 30000, durable: false } );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
-        process.exit( 1 );
-    }
-
-    try {
-        await channel.bindQueue( conf.rabbitConsumeQueueName, conf.rabbitTopicName, conf.rabbitRoutingKey );
-    } catch ( err ) {
-        console.log( `[ ERRO ] Falha ao configurar a chave de roteamento. ${err.message}` );
-        process.exit( 1 );
+            try {
+                await channel.bindQueue( conf.rabbitConsumeQueueName, conf.rabbitTopicName, conf.rabbitRoutingKey );
+            } catch ( err ) {
+                console.log( `[ getConsumerChannel ] Falha ao configurar a chave de roteamento. ${err.message}` );
+                channel = undefined;
+            }
+        }
     }
     return channel;
 }

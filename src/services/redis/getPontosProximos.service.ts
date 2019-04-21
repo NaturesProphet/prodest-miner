@@ -16,6 +16,6 @@ export async function getPontosProximos ( redisConnection, LongLat ) {
         let proximidades = await redisConnection.georadiusAsync( conf.redisDicionario, long, lat, conf.redisRaio, 'm' );
         return proximidades;
     } catch ( err ) {
-        console.log( `Erro ao fazer uma busca GEORADIUS no redis. ${err.message}` );
+        console.log( `[ getPontosProximos ] Erro ao fazer uma busca GEORADIUS no redis. ${err.message}` );
     }
 }

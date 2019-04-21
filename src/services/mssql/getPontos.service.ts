@@ -21,7 +21,7 @@ export async function getPontos ( pool: ConnectionPool ): Promise<any> {
                 return result.recordset;
             }
         } catch ( err ) {
-            let msg = `Erro ao tentar recuperar a lista de pontos no banco estático\n${err.message}`;
+            let msg = `[ getPontos ] Erro ao tentar recuperar a lista de pontos no banco estático\n${err.message}`;
             console.log( msg );
             result = null;
         }

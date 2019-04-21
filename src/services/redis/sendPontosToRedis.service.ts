@@ -22,9 +22,11 @@ export async function sendPontosToRedis ( pool: ConnectionPool, redisConnection 
         }
         let longitude = pontos[ ponto ].longitude;
         let latitude = pontos[ ponto ].latitude;
-        await redisConnection.geoaddAsync( 'pontos', longitude, latitude, id )
-
+        try {
+            await redisConnection.geoaddAsync( 'pontos', longitude, latitude, id );
+        } catch ( err ) {
+            console.log( `[ sendPontosToRedis ] Falja ao tentar carregar os pontos no redis. ${err.message}` );
+        }
     }
-
-    console.log( 'Redis carregado.' );
+    console.log( `Redis carregado com as coordenadas de ${pontos.length} pontos.\n` );
 }
