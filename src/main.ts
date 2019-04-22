@@ -18,7 +18,7 @@ import { getPontosProximos } from './services/redis/getPontosProximos.service';
 import { getConsumerChannel } from './services/rabbitmq/getConsumerChannel.service';
 import { isPontoInicial, isPontoFinal } from './services/tempo/pontos.service';
 import { geraMargemHorario } from './services/tempo/margensHorario.service';
-//import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service';
+import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service';
 
 
 async function main () {
@@ -28,12 +28,12 @@ async function main () {
     const redisConnection = IniciaConexaoRedis();
     await sendPontosToRedis( SqlConnection, redisConnection );
     const consumerChannel: Channel = await getConsumerChannel();
-    //const publishChannel: Channel = await getPublishChannel();
+    const publishChannel: Channel = await getPublishChannel();
 
     console.log( '\n-----------------------------------------------------------' );
     console.log( `[ ${new Date().toString()} ]\nO Miner iniciou com sucesso!` );
     console.log( '-----------------------------------------------------------\n\n' );
-    await consumerChannel.consume( rabbitConf.rabbitConsumeQueueName, async ( msg ) => {
+    await consumerChannel.consume( rabbitConf.rabbitConsumerQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
         if ( veiculo != undefined && veiculo.IGNICAO ) {
 
@@ -103,11 +103,14 @@ async function main () {
                                 sequencia: ordem
                             }
                             await salvaHistoria( SqlConnection, historia );
-                            // publishChannel.sendToQueue(
-                            //     rabbitConf.rabbitPublishQueueName,
-                            //     new Buffer( JSON.stringify( historia ) ),
-                            //     { persistent: false }
-                            // );
+                            if ( historia.pontoFinal == 1 ) {
+                                publishChannel.publish(
+                                    rabbitConf.rabbitTopicName,
+                                    rabbitConf.rabbitPublishRoutingKey,
+                                    new Buffer( JSON.stringify( historia ) ),
+                                    { persistent: false }
+                                );
+                            }
                         }
                     }
                 }

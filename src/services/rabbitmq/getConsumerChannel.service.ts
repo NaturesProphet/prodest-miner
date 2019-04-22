@@ -33,14 +33,14 @@ export async function getConsumerChannel (): Promise<amqp.Channel> {
             }
 
             try {
-                await channel.assertQueue( conf.rabbitConsumeQueueName, { messageTtl: 30000, durable: false } );
+                await channel.assertQueue( conf.rabbitConsumerQueueName, { messageTtl: 30000, durable: false } );
             } catch ( err ) {
                 console.log( `[ getConsumerChannel ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
                 channel = undefined;
             }
 
             try {
-                await channel.bindQueue( conf.rabbitConsumeQueueName, conf.rabbitTopicName, conf.rabbitRoutingKey );
+                await channel.bindQueue( conf.rabbitConsumerQueueName, conf.rabbitTopicName, conf.rabbitConsumerRoutingKey );
             } catch ( err ) {
                 console.log( `[ getConsumerChannel ] Falha ao configurar a chave de roteamento. ${err.message}` );
                 channel = undefined;

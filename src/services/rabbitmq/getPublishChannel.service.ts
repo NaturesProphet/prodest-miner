@@ -22,11 +22,24 @@ export async function getPublishChannel (): Promise<amqp.Channel> {
                 console.log( `[ getPublishChannel ] Falha ao declarar o canal de produção no rabbitMQ. ${err.message}` );
                 channel = undefined;
             }
+            try {
+                await channel.assertExchange( conf.rabbitTopicName, 'topic', { durable: false } );
+            } catch ( err ) {
+                console.log( `[ getPublishChannel ] Falha ao declarar um topico no rabbitMQ. ${err.message}` );
+                channel = undefined;
+            }
 
             try {
                 await channel.assertQueue( conf.rabbitPublishQueueName, { messageTtl: 30000, durable: false } );
             } catch ( err ) {
-                console.log( `[ getPublishChannel ] Falha ao declarar a fila de produção no rabbitMQ. ${err.message}` );
+                console.log( `[ getPublishChannel ] Falha ao declarar a fila de publicação no rabbitMQ. ${err.message}` );
+                channel = undefined;
+            }
+
+            try {
+                await channel.bindQueue( conf.rabbitPublishQueueName, conf.rabbitTopicName, conf.rabbitPublishRoutingKey );
+            } catch ( err ) {
+                console.log( `[ getPublishChannel ] Falha ao configurar a chave de roteamento. ${err.message}` );
                 channel = undefined;
             }
         }
