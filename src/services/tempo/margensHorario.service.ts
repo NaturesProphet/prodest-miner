@@ -23,3 +23,15 @@ export function reduzMargemHorario ( margem: string[] ): string[] {
     return margemReduzida;
 
 }
+
+export function esticaMargemHorario ( margem: string[] ): string[] {
+
+    let saidaDate = new Date( margem[ 0 ] );
+    let chegadaDate = new Date( margem[ 1 ] );
+
+    saidaDate.setUTCHours( saidaDate.getUTCHours() + 1 );
+    chegadaDate.setUTCHours( chegadaDate.getUTCHours() + 1 );
+
+    let margemReduzida = [ saidaDate.toISOString(), chegadaDate.toISOString() ];
+    return margemReduzida;
+}

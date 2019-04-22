@@ -55,7 +55,7 @@ async function main () {
                     horaChegada: margemDeHorarios[ 1 ]
                 }
 
-                let viagemDaVez = await getViagem( SqlConnection, dadosViagem );
+                let viagemDaVez = await getViagem( SqlConnection, dadosViagem, 0 );
 
                 if ( viagemDaVez != null ) {
                     let viagemId = viagemDaVez.id;
