@@ -6,7 +6,7 @@ import * as rabbitConf from './common/rabbit.config';
 import { Channel } from 'amqplib';
 import { ConnectionPool } from 'mssql';
 import { ViagemQueryObject } from './DTOs/viagemQuery.interface';
-import { getViagem, geraMargemHorario } from './services/mssql/getViagem.service';
+import { getViagem } from './services/mssql/getViagem.service';
 import { getSequenciaPontos } from './services/mssql/getSequenciaPontos.service';
 import { PontoXOrdem } from './DTOs/PontoXOrdem.interface';
 import { VeiculoXPonto } from './DTOs/VeiculoXPonto.interface';
@@ -16,6 +16,8 @@ import { IniciaConexaoRedis } from './services/redis/iniciaConexao.service';
 import { sendPontosToRedis } from './services/redis/sendPontosToRedis.service';
 import { getPontosProximos } from './services/redis/getPontosProximos.service';
 import { getConsumerChannel } from './services/rabbitmq/getConsumerChannel.service';
+import { isPontoInicial, isPontoFinal } from './services/tempo/pontos.service';
+import { geraMargemHorario } from './services/tempo/margensHorario.service';
 //import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service';
 
 
@@ -78,12 +80,15 @@ async function main () {
                         if ( pontoEordemAtual != undefined ) {
                             ordem = pontoEordemAtual.ordem;
                             if ( pontoId == sequenciaPontos[ 0 ].ponto_id ) {
-                                inicial = 1;
+                                if ( isPontoInicial( veiculo.DATAHORA, viagemDaVez.horadasaida ) ) {
+                                    inicial = 1;
+                                }
                             }
                             if ( pontoId == sequenciaPontos[ sequenciaPontos.length - 1 ].ponto_id ) {
-                                final = 1;
+                                if ( isPontoFinal( veiculo.DATAHORA, viagemDaVez.horadachegada ) ) {
+                                    final = 1;
+                                }
                             }
-
                             let historia: VeiculoXPonto = {
                                 rotulo: veiculoDaVez,
                                 datahoraMillis: veiculo.DATAHORA,
