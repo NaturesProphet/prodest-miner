@@ -13,7 +13,8 @@
     "stop:mssql": "docker stop sql-server-persistent && docker rm sql-server-persistent",
     "stop:all": "docker stop $(docker ps -q -a) && docker rm $(docker ps -q -a)",
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
-    "commit": "git-cz"
+    "commit": "git-cz",
+    "release": "standard-version"
   },
   "repository": {
     "type": "git",
