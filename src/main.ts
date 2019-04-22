@@ -19,6 +19,7 @@ import { getConsumerChannel } from './services/rabbitmq/getConsumerChannel.servi
 import { isPontoInicial, isPontoFinal } from './services/tempo/pontos.service';
 import { geraMargemHorario } from './services/tempo/margensHorario.service';
 import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service';
+import { debug } from './services/utils/console.service';
 
 
 async function main () {
@@ -35,7 +36,10 @@ async function main () {
     console.log( '-----------------------------------------------------------\n\n' );
     await consumerChannel.consume( rabbitConf.rabbitConsumerQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
+        debug( 1, `Veiculo recebido: ${veiculo}` );
         if ( veiculo != undefined && veiculo.IGNICAO ) {
+            debug( 2, `Veiculo Ligado: ${veiculo}` );
+
 
             let LongLat = {
                 longitude: veiculo.LONGITUDE,
@@ -43,6 +47,9 @@ async function main () {
             };
 
             let PontosProximos: any[] = await getPontosProximos( redisConnection, LongLat );
+
+            debug( 2, `Pontos Próximos de ${veiculo.ROTULO}: ${PontosProximos.length}` );
+
             if ( PontosProximos != undefined && PontosProximos.length != 0 ) {
                 veiculo.DATAHORA = veiculo.DATAHORA - 10800000; // converte para hora local, utc-3
 
@@ -54,10 +61,12 @@ async function main () {
                     horaSaida: margemDeHorarios[ 0 ],
                     horaChegada: margemDeHorarios[ 1 ]
                 }
+                debug( 3, `Veiculo da vez: ${veiculoDaVez}` );
 
                 let viagemDaVez = await getViagem( SqlConnection, dadosViagem, 0 );
 
                 if ( viagemDaVez != null ) {
+                    debug( 4, `Viagem da vez: ${viagemDaVez}` );
                     let viagemId = viagemDaVez.id;
                     let itinerarioId = viagemDaVez.itinerario_id
                     let pontoId = PontosProximos[ 0 ];
@@ -74,6 +83,7 @@ async function main () {
                                     ponto: element.ponto_id,
                                     ordem: element.ordem
                                 }
+                                debug( 5, `Ponto e ordem atual: ${pontoEordemAtual}` );
                             }
                         } );
 
@@ -102,6 +112,7 @@ async function main () {
                                 pontoFinal: final,
                                 sequencia: ordem
                             }
+                            debug( 6, `Historia: ${historia}` );
                             await salvaHistoria( SqlConnection, historia );
                             if ( historia.pontoFinal == 1 ) {
                                 publishChannel.publish(

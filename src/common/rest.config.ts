@@ -1,1 +1,0 @@
-export const pontosRestURL: string = process.env.MINER_REST_URL_PONTOS;
