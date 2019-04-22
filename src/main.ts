@@ -6,7 +6,7 @@ import * as rabbitConf from './common/rabbit.config';
 import { Channel } from 'amqplib';
 import { ConnectionPool } from 'mssql';
 import { ViagemQueryObject } from './DTOs/viagemQuery.interface';
-import { getViagem } from './services/mssql/getViagem.service';
+import { getViagem, geraMargemHorario } from './services/mssql/getViagem.service';
 import { getSequenciaPontos } from './services/mssql/getSequenciaPontos.service';
 import { PontoXOrdem } from './DTOs/PontoXOrdem.interface';
 import { VeiculoXPonto } from './DTOs/VeiculoXPonto.interface';
@@ -45,25 +45,19 @@ async function main () {
                 veiculo.DATAHORA = veiculo.DATAHORA - 10800000; // converte para hora local, utc-3
 
                 let veiculoDaVez: string = veiculo.ROTULO;
-                let hrchegada: Date = new Date( veiculo.DATAHORA );
-                hrchegada.setUTCHours( hrchegada.getUTCHours() + 2 );
-                let chegada = hrchegada.toISOString();
-                let hrsaida: Date = new Date( veiculo.DATAHORA );
-                hrsaida.setUTCHours( hrsaida.getUTCHours() - 2 );
-                let saida = hrsaida.toISOString();
-
+                let margemDeHorarios = geraMargemHorario( new Date( veiculo.DATAHORA ).toISOString() );
                 let dadosViagem: ViagemQueryObject = {
-                    rota: veiculoDaVez,
-                    horaChegada: chegada,
-                    horaSaida: saida,
-                    horaAgora: new Date( veiculo.DATAHORA ).toISOString()
+                    veiculo: veiculoDaVez,
+                    horaAgora: new Date( veiculo.DATAHORA ).toISOString(),
+                    horaSaida: margemDeHorarios[ 0 ],
+                    horaChegada: margemDeHorarios[ 1 ]
                 }
 
                 let viagemDaVez = await getViagem( SqlConnection, dadosViagem );
 
-                if ( viagemDaVez.length > 0 ) {
-                    let viagemId = viagemDaVez[ 0 ].id;
-                    let itinerarioId = viagemDaVez[ 0 ].itinerario_id
+                if ( viagemDaVez != null ) {
+                    let viagemId = viagemDaVez.id;
+                    let itinerarioId = viagemDaVez.itinerario_id
                     let pontoId = PontosProximos[ 0 ];
                     let sequenciaPontos = await getSequenciaPontos( SqlConnection, itinerarioId );
                     let inicial: 1 | 0 = 0;
@@ -113,7 +107,6 @@ async function main () {
                     }
                 }
             }
-
         }
         consumerChannel.ack( msg );
     } );
