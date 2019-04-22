@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.2](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.1.1...v0.1.2) (2019-04-22)
+
+
+### Bug Fixes
+
+* **salvaHistoria:** update do nome novo da tabela ([8a92bfd](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/8a92bfd))
+
+
+
 ## [0.1.1](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.1.0...v0.1.1) (2019-04-22)
 
 
