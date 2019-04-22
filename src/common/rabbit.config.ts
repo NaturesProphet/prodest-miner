@@ -9,6 +9,8 @@ export const rabbitConsumerQueueName: string = process.env.MINER_RABBIT_CONSUMER
 export const rabbitPublishQueueName: string = process.env.MINER_RABBIT_PUBLISH_QUEUE_NAME;
 export const rabbitConsumerRoutingKey: string = process.env.MINER_RABBIT_CONSUMER_ROUTING_KEY;
 export const rabbitPublishRoutingKey: string = process.env.MINER_RABBIT_PUBLISH_ROUTING_KEY;
+export const rabbitPublishTTL: number = Number( process.env.MINER_RABBIT_PUBLISH_TTL );
+export const rabbitConsumerTTL: number = Number( process.env.MINER_RABBIT_CONSUMER_TTL );
 
 
 export const amqpOptions: Options.Connect = {

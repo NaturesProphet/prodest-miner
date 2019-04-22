@@ -30,7 +30,7 @@ export async function getPublishChannel (): Promise<amqp.Channel> {
             }
 
             try {
-                await channel.assertQueue( conf.rabbitPublishQueueName, { messageTtl: 30000, durable: false } );
+                await channel.assertQueue( conf.rabbitPublishQueueName, { messageTtl: conf.rabbitPublishTTL, durable: false } );
             } catch ( err ) {
                 console.log( `[ getPublishChannel ] Falha ao declarar a fila de publicação no rabbitMQ. ${err.message}` );
                 channel = undefined;

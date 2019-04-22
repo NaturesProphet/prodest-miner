@@ -33,7 +33,7 @@ export async function getConsumerChannel (): Promise<amqp.Channel> {
             }
 
             try {
-                await channel.assertQueue( conf.rabbitConsumerQueueName, { messageTtl: 30000, durable: false } );
+                await channel.assertQueue( conf.rabbitConsumerQueueName, { messageTtl: conf.rabbitConsumerTTL, durable: false } );
             } catch ( err ) {
                 console.log( `[ getConsumerChannel ] Falha ao declarar a fila de consumo no rabbitMQ. ${err.message}` );
                 channel = undefined;
