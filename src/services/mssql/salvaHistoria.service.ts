@@ -3,7 +3,7 @@ if ( process.env.NODE_ENV != 'production' ) {
     dotenv.config();
 }
 import { ConnectionPool } from 'mssql';
-import { VeiculoXPonto } from 'DTOs/VeiculoXPonto.interface';
+import { VeiculoXPonto } from '../../DTOs/VeiculoXPonto.interface';
 
 
 export async function salvaHistoria ( pool: ConnectionPool, dados: VeiculoXPonto ): Promise<any> {
@@ -18,9 +18,10 @@ export async function salvaHistoria ( pool: ConnectionPool, dados: VeiculoXPonto
             + `+${dados.pontoFinal}, ${dados.sequencia} )`;
 
         let result = await pool.request().query( insertQuery );
-
-        if ( result.recordset != undefined ) {
+        if ( result.rowsAffected.length == 1 ) {
             return result.recordset;
+        } else {
+            console.log( `[ salvaHistorico ] executou insert sem erros mas não gravou nada!. ${result}` )
         }
     } catch ( err ) {
         let msg = `[ salvaHistorico ] Erro ao consultar viagens no banco estático\n${err.message} `;
