@@ -19,7 +19,7 @@ export async function salvaHistoria ( pool: ConnectionPool, dados: VeiculoXPonto
 
         let result = await pool.request().query( insertQuery );
         if ( result.rowsAffected.length == 1 ) {
-            return result.recordset;
+            return;
         } else {
             console.log( `[ salvaHistorico ] executou insert sem erros mas não gravou nada!. ${result}` )
         }
