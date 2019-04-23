@@ -22,6 +22,7 @@ import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service
 import { debug } from './services/utils/console.service';
 import { onibusPassando } from './services/redis/onibusPassando.service';
 import { onibusJaPassou } from './services/redis/onibusJaPassou.service';
+import { getPontoCerto } from 'services/mssql/getPontoCerto.service';
 
 
 async function main () {
@@ -76,61 +77,68 @@ async function main () {
                     let viagemDaVez = await getViagem( SqlConnection, dadosViagem, null );
 
                     if ( viagemDaVez != null ) {
-                        debug( 5, `Viagem da vez: ${viagemDaVez}` );
-                        let viagemId = viagemDaVez.id;
-                        let itinerarioId = viagemDaVez.itinerario_id
-                        let pontoId = PontosProximos[ 0 ];
-                        let sequenciaPontos = await getSequenciaPontos( SqlConnection, itinerarioId );
-                        let inicial: 1 | 0 = 0;
-                        let final: 1 | 0 = 0;
-                        let ordem: number;
 
-                        if ( sequenciaPontos.length > 0 ) {
-                            let pontoEordemAtual: PontoXOrdem;
-                            sequenciaPontos.forEach( element => {
-                                if ( element.ponto_id == pontoId ) {
-                                    pontoEordemAtual = {
-                                        ponto: element.ponto_id,
-                                        ordem: element.ordem
-                                    }
-                                    debug( 6, `Ponto e ordem atual: ${pontoEordemAtual}` );
-                                }
-                            } );
+                        let pontoCorreto = await
+                            getPontoCerto( SqlConnection, viagemDaVez.itinerario_id, PontosProximos );
 
-                            if ( pontoEordemAtual != undefined ) {
-                                ordem = pontoEordemAtual.ordem;
-                                if ( pontoId == sequenciaPontos[ 0 ].ponto_id ) {
-                                    if ( isPontoInicial( veiculo.DATAHORA, viagemDaVez.horadasaida ) ) {
-                                        inicial = 1;
+                        if ( pontoCorreto != undefined ) {
+
+                            debug( 5, `Viagem da vez: ${viagemDaVez}` );
+                            let viagemId = viagemDaVez.id;
+                            let itinerarioId = viagemDaVez.itinerario_id
+                            let pontoId = pontoCorreto;
+                            let sequenciaPontos = await getSequenciaPontos( SqlConnection, itinerarioId );
+                            let inicial: 1 | 0 = 0;
+                            let final: 1 | 0 = 0;
+                            let ordem: number;
+
+                            if ( sequenciaPontos.length > 0 ) {
+                                let pontoEordemAtual: PontoXOrdem;
+                                sequenciaPontos.forEach( element => {
+                                    if ( element.ponto_id == pontoId ) {
+                                        pontoEordemAtual = {
+                                            ponto: element.ponto_id,
+                                            ordem: element.ordem
+                                        }
+                                        debug( 6, `Ponto e ordem atual: ${pontoEordemAtual}` );
                                     }
-                                }
-                                if ( pontoId == sequenciaPontos[ sequenciaPontos.length - 1 ].ponto_id ) {
-                                    if ( isPontoFinal( veiculo.DATAHORA, viagemDaVez.horadachegada ) ) {
-                                        final = 1;
+                                } );
+
+                                if ( pontoEordemAtual != undefined ) {
+                                    ordem = pontoEordemAtual.ordem;
+                                    if ( pontoId == sequenciaPontos[ 0 ].ponto_id ) {
+                                        if ( isPontoInicial( veiculo.DATAHORA, viagemDaVez.horadasaida ) ) {
+                                            inicial = 1;
+                                        }
                                     }
-                                }
-                                let historia: VeiculoXPonto = {
-                                    rotulo: veiculoDaVez,
-                                    datahoraMillis: veiculo.DATAHORA,
-                                    datahoraLegivel: new Date( veiculo.DATAHORA ).toISOString(),
-                                    velocidade: veiculo.VELOCIDADE,
-                                    ignicao: veiculo.IGNICAO,
-                                    pontoId: pontoId,
-                                    itinerarioId: itinerarioId,
-                                    viagemId: viagemId,
-                                    pontoInicial: inicial,
-                                    pontoFinal: final,
-                                    sequencia: ordem
-                                }
-                                debug( 7, `Historia: ${historia}` );
-                                await salvaHistoria( SqlConnection, historia );
-                                if ( historia.pontoFinal == 1 ) {
-                                    publishChannel.publish(
-                                        rabbitConf.rabbitTopicName,
-                                        rabbitConf.rabbitPublishRoutingKey,
-                                        new Buffer( JSON.stringify( { viagem: historia.viagemId } ) ),
-                                        { persistent: false }
-                                    );
+                                    if ( pontoId == sequenciaPontos[ sequenciaPontos.length - 1 ].ponto_id ) {
+                                        if ( isPontoFinal( veiculo.DATAHORA, viagemDaVez.horadachegada ) ) {
+                                            final = 1;
+                                        }
+                                    }
+                                    let historia: VeiculoXPonto = {
+                                        rotulo: veiculoDaVez,
+                                        datahoraMillis: veiculo.DATAHORA,
+                                        datahoraLegivel: new Date( veiculo.DATAHORA ).toISOString(),
+                                        velocidade: veiculo.VELOCIDADE,
+                                        ignicao: veiculo.IGNICAO,
+                                        pontoId: pontoId,
+                                        itinerarioId: itinerarioId,
+                                        viagemId: viagemId,
+                                        pontoInicial: inicial,
+                                        pontoFinal: final,
+                                        sequencia: ordem
+                                    }
+                                    debug( 7, `Historia: ${historia}` );
+                                    await salvaHistoria( SqlConnection, historia );
+                                    if ( historia.pontoFinal == 1 ) {
+                                        publishChannel.publish(
+                                            rabbitConf.rabbitTopicName,
+                                            rabbitConf.rabbitPublishRoutingKey,
+                                            new Buffer( JSON.stringify( { viagem: historia.viagemId } ) ),
+                                            { persistent: false }
+                                        );
+                                    }
                                 }
                             }
                         }
