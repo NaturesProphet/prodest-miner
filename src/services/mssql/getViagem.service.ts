@@ -26,18 +26,15 @@ export async function getViagem (
             aumentosGrandes: 0,
             aumentosPequenos: 0,
             reducoes: 0,
+            reduziu: false,
+            aumentou: false,
             total: 0
         }
     }
 
-    debug( 10, `Recursões: ${JSON.stringify( controleRecursao )}\n------------------` );
-
-
-    // isso JAMAIS vai acontecer! Nunca! mas sei lá... se pá..
-    if ( controleRecursao.total > 40 ) {
-        throw new Error( `\n[ ERRO NA FUNÇÃO getViagem ] A recursividade chegou a um nível inesperado\n${controleRecursao}` );
+    if ( controleRecursao.total > 35 ) {
+        return null;
     }
-
 
     try {
         let queryViagem = `SELECT viagem.id, viagem.itinerario_id, horadasaida, horadachegada FROM viagem `
@@ -48,6 +45,7 @@ export async function getViagem (
 
         // veio só uma viagem (então é a certa)
         if ( result.recordset.length == 1 ) {
+            debug( 10, `Recursões: ${JSON.stringify( controleRecursao )}\n------------------` );
             return result.recordset[ 0 ];
         }
 
@@ -56,7 +54,7 @@ export async function getViagem (
             e não houveram reduções anteriores 
         */
         else if ( result.recordset.length == 0
-            && controleRecursao.aumentosGrandes < 4
+            && controleRecursao.aumentosGrandes < 2
             && controleRecursao.reducoes == 0 ) {
             let margemAmpliada = esticaMargemHorario( [
                 dados.horaChegada,
@@ -66,6 +64,7 @@ export async function getViagem (
             dados.horaChegada = margemAmpliada[ 1 ];
             controleRecursao.aumentosGrandes++;
             controleRecursao.total++;
+            controleRecursao.aumentou = true;
             return await getViagem( pool, dados, controleRecursao );
 
         }
@@ -76,8 +75,11 @@ export async function getViagem (
             return null
         }
 
-        //não achou viagens após uma redução de uma faixa onde antes haviam viagens
-        else if ( result.recordset.length == 0 && controleRecursao.reducoes > 0 ) {
+        //não achou viagens após uma redução OU ampliação curta de uma faixa onde antes haviam viagens
+        else if ( ( result.recordset.length == 0 && controleRecursao.reduziu )
+            || ( result.recordset.length == 0
+                && controleRecursao.aumentosGrandes < 2
+                && controleRecursao.aumentou ) ) {
             let margemAmpliada = esticaMargemHorario( [
                 dados.horaChegada,
                 dados.horaSaida
@@ -86,6 +88,8 @@ export async function getViagem (
             dados.horaChegada = margemAmpliada[ 1 ];
             controleRecursao.aumentosPequenos++;
             controleRecursao.total++;
+            controleRecursao.reduziu = false;
+            controleRecursao.aumentou = true;
             return await getViagem( pool, dados, controleRecursao );
         }
 
@@ -99,6 +103,8 @@ export async function getViagem (
             dados.horaChegada = margemReduzida[ 1 ];
             controleRecursao.reducoes++;
             controleRecursao.total++;
+            controleRecursao.aumentou = false;
+            controleRecursao.reduziu = true;
             return await getViagem( pool, dados, controleRecursao );
         }
 
