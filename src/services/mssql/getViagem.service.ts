@@ -30,7 +30,7 @@ export async function getViagem (
         }
     }
 
-    debug( 10, `Recursões: ${controleRecursao}\n------------------` );
+    debug( 10, `Recursões: ${JSON.stringify( controleRecursao )}\n------------------` );
 
 
     // isso JAMAIS vai acontecer! Nunca! mas sei lá... se pá..
