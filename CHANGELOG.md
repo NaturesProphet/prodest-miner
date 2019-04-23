@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.2.0](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.1.3...v0.2.0) (2019-04-23)
+
+
+### Features
+
+* **cache:** Onibus passando em um ponto especifico está em cache por 10 mins ([dd93654](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/dd93654))
+
+
+
 ## [0.1.3](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.1.2...v0.1.3) (2019-04-22)
 
 
