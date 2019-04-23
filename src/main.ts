@@ -128,7 +128,7 @@ async function main () {
                                     publishChannel.publish(
                                         rabbitConf.rabbitTopicName,
                                         rabbitConf.rabbitPublishRoutingKey,
-                                        new Buffer( JSON.stringify( historia ) ),
+                                        new Buffer( JSON.stringify( { viagem: historia.viagemId } ) ),
                                         { persistent: false }
                                     );
                                 }
