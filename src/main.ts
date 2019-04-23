@@ -73,7 +73,7 @@ async function main () {
                     }
                     debug( 4, `Veiculo da vez: ${veiculoDaVez}` );
 
-                    let viagemDaVez = await getViagem( SqlConnection, dadosViagem, 0 );
+                    let viagemDaVez = await getViagem( SqlConnection, dadosViagem, null );
 
                     if ( viagemDaVez != null ) {
                         debug( 5, `Viagem da vez: ${viagemDaVez}` );

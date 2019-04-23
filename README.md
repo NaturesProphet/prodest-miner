@@ -7,3 +7,6 @@ Serviço que minera os dados do segundo tópico do realtime, filtrando os veicul
 ## Variaveis de ambiente
 
 crie um arquivo chamado '.env' e o configure conforme o conteúdo de exemplo disponivel na raiz do repositório: .env.example.
+
+## debug
+ajuste o valor da variavel de ambiente MINER_CONSOLE_LEVEL entre 0 e 7 para ler varios níveis específicos de mensagens de debug no terminal. ajsute o valor para 10 para visualizar o numero de recursões que cada viagem encontrada fez para ser descoberta.
