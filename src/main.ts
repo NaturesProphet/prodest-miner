@@ -82,6 +82,7 @@ async function main () {
                             getPontoCerto( SqlConnection, viagemDaVez.itinerario_id, PontosProximos );
 
                         if ( pontoValido != undefined ) {
+                            //console.log( pontoValido )
 
                             debug( 5, `Viagem da vez: ${viagemDaVez}` );
                             let viagemId = viagemDaVez.id;
