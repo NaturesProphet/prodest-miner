@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.4.1](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.4.0...v0.4.1) (2019-04-24)
+
+
+### Bug Fixes
+
+* **getPontoCerto:** field corrigido ([de8b9b3](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/de8b9b3))
+
+
+
 # [0.4.0](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.3.3...v0.4.0) (2019-04-23)
 
 
