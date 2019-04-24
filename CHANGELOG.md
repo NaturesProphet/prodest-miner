@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+# [0.5.0](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.4.2...v0.5.0) (2019-04-24)
+
+
+### Features
+
+* **Viagens:** sub-rotina para processar viagens sem seus pontos finais detectados ([e629530](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/e629530))
+
+
+
 ## [0.4.2](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.4.1...v0.4.2) (2019-04-24)
 
 
