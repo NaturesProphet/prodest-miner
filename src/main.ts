@@ -22,7 +22,10 @@ import { getPublishChannel } from './services/rabbitmq/getPublishChannel.service
 import { debug } from './services/utils/console.service';
 import { AviseQueEsseOnibusJaPassouAqui } from './services/redis/onibusPassando.service';
 import { onibusJaPassou } from './services/redis/onibusJaPassou.service';
-import { getPontoCerto } from 'services/mssql/getPontoCerto.service';
+import { getPontoCerto } from './services/mssql/getPontoCerto.service';
+import { listaViagensDaHora } from './services/IdentificaViagensTerminadasNaoIdentificadas/listaViagensDaHora.service';
+import { filtraPorViagensRealizadas } from './services/IdentificaViagensTerminadasNaoIdentificadas/filtraPorViagensRealizadas.service';
+import { filtraPorViagensNaoProcessadas } from './services/IdentificaViagensTerminadasNaoIdentificadas/filtraPorViagensNaoProcessadas.service';
 
 
 async function main () {
@@ -33,6 +36,70 @@ async function main () {
     await sendPontosToRedis( SqlConnection, redisConnection );
     const consumerChannel: Channel = await getConsumerChannel();
     const publishChannel: Channel = await getPublishChannel();
+    let bufferDeViagensJaProcessadas: number[] = new Array();
+
+
+    //--------------------------------------------
+    /**
+     * Sub-rotina que verifica quais foram as ultimas viagens
+     * terminadas que não tiveram seus pontos finais identificados.
+     * após a identificação, elas são entregues a fila.
+     */
+    setInterval( async () => {
+        let now = new Date();
+        let announce = `\n\n***************************************************\n`
+            + `[ ${now} ]\nSub-algoritmo de identificação de viagens sem ponto final `
+            + `iniciado...`;
+        console.log( announce );
+
+        let ultimasViagensPrevistas = await listaViagensDaHora( SqlConnection );
+
+        if ( ultimasViagensPrevistas ) {
+            console.log( `${ultimasViagensPrevistas.length} viagens estavam previstas essa hora.` )
+
+            let viagensRecentesRealizadas = await filtraPorViagensRealizadas
+                ( SqlConnection, ultimasViagensPrevistas );
+
+
+            if ( viagensRecentesRealizadas ) {
+                console.log( `${viagensRecentesRealizadas.length} viagens realizadas` )
+
+                let viagensNaoProcessadas = await filtraPorViagensNaoProcessadas
+                    ( SqlConnection, bufferDeViagensJaProcessadas, viagensRecentesRealizadas );
+
+                if ( viagensNaoProcessadas ) {
+                    console.log( `Viagens já processadas: ${bufferDeViagensJaProcessadas.length}` )
+                    console.log( `${viagensNaoProcessadas.length} não processadas` )
+                    viagensNaoProcessadas.forEach( viagem => {
+                        publishChannel.publish(
+                            rabbitConf.rabbitTopicName,
+                            rabbitConf.rabbitPublishRoutingKey,
+                            new Buffer( JSON.stringify( { viagem: viagem } ) ),
+                            { persistent: false }
+                        );
+                    } );
+                    console.log( `${viagensNaoProcessadas.length} viagens descobertas e entregues.` )
+                    bufferDeViagensJaProcessadas = new Array(); // limpa o buffer
+                } else {
+                    console.log( 'Não achou viagens não processadas.\n' +
+                        `Tamanho atual do Buffer: ${bufferDeViagensJaProcessadas.length}\n`
+                        + 'O miner foi ligado agora ?' );
+                }
+            } else {
+                console.log( 'Não encontrou viagens na tabela do miner. ' +
+                    'O miner foi ligado agora?' )
+            }
+        } else {
+            console.log( `Não achou as viagens previstas.. ` +
+                `o banco está carregado com as viagens de hoje?` );
+        }
+        console.log( `Sub algoritmo concluído para este horario.\n--------------` )
+    }, 3600000 );
+    //----------------------------------------------
+
+
+
+
 
     console.log( '\n-----------------------------------------------------------' );
     console.log( `[ ${new Date().toString()} ]\nO Miner iniciou com sucesso!` );
@@ -128,6 +195,7 @@ async function main () {
                                 await salvaHistoria( SqlConnection, historia );
 
                                 if ( historia.pontoFinal == 1 ) {
+                                    bufferDeViagensJaProcessadas.push( historia.viagemId );
                                     publishChannel.publish(
                                         rabbitConf.rabbitTopicName,
                                         rabbitConf.rabbitPublishRoutingKey,
