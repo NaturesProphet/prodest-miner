@@ -14,7 +14,8 @@
     "stop:all": "docker stop $(docker ps -q -a) && docker rm $(docker ps -q -a)",
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "commit": "git-cz",
-    "release": "standard-version"
+    "release": "standard-version",
+    "redis:gui": "docker run -d --hostname redis-scommander --name redis-commander -p 8081:8081 -e REDIS_HOSTS=local:redis:6379 rediscommander/redis-commander:latest"
   },
   "repository": {
     "type": "git",
