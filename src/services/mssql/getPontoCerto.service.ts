@@ -15,7 +15,7 @@ export async function getPontoCerto ( pool: ConnectionPool, itinerarioId: number
         let result = await pool.request().query( query );
 
         if ( result.recordset != undefined && result.recordset.length > 0 ) {
-            return result.recordset[ 0 ];
+            return result.recordset[ 0 ].ponto_id;
         }
     } catch ( err ) {
         let msg = `[ getSequenciaPontos ] Erro ao consultar sequencia de pontos no banco estático\n${err.message}`;
