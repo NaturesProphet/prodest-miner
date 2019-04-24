@@ -10,7 +10,7 @@ bluebird.promisifyAll( redis.Multi.prototype );
 
 
 
-export async function onibusPassando ( rotuloPonto: string, redisConnection ) {
+export async function AviseQueEsseOnibusJaPassouAqui ( rotuloPonto: string, redisConnection ) {
     try {
         await redisConnection.setAsync( rotuloPonto, 'true', 'EX', redisCacheTime );
     } catch ( err ) {

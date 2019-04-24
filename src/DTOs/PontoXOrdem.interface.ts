@@ -1,4 +1,4 @@
 export interface PontoXOrdem {
-    ponto: number
-    ordem: number
+    ponto: number;
+    ordem: number;
 }
