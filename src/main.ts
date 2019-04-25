@@ -100,7 +100,7 @@ async function main () {
         } else {
             result += `Nenhuma viagem finalizada foi detectada na ultima hora.\n`;
         }
-        result += `\nSub algoritmo concluído para este horario.\n--------------`;
+        result += `\nSub-rotina de identificação de viagens concluída para este horario.\n--------------`;
         await notifySlack( result, 'Nota' );
     }, 3600000 );
     //----------------------------------------------
