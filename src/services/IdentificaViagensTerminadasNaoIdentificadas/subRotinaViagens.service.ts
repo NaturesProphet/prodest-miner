@@ -115,7 +115,9 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
       let razaoGeral = ( total / viagensPrevistas.length ) * 100;
       logDeExecucao += `\n\nRESUMO DA EXECUÇÃO:\n`
         + `Viagens totais previstas: ${viagensPrevistas.length}\n`
-        + `Viagens COM Histórico processados após a subrotina: ${total}\n`
+        + `Viagens COM Histórico Real (automáticos) ANTES da subrotina: `
+        + `${viagensPrevistasComHistorico.length}\n`
+        + `Viagens COM Histórico Real processados após a subrotina (TOTAL): ${total}\n`
         + `Taxa total de sucesso teórico no intervalo: ${razaoGeral.toFixed( 2 )}%\n\n`;
       viagensPrevistasSemHistoricoComAtividadeDetectada.forEach( element => {
         avisaNoTopico( fila, element )
