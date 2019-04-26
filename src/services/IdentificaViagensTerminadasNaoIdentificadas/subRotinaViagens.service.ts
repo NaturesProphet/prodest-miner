@@ -118,7 +118,8 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
         + `Viagens COM Histórico Real (automáticos) ANTES da subrotina: `
         + `${viagensPrevistasComHistorico.length}\n`
         + `Viagens COM Histórico Real processados após a subrotina (TOTAL): ${total}\n`
-        + `Taxa total de sucesso teórico no intervalo: ${razaoGeral.toFixed( 2 )}%\n\n`;
+        + `Total de Viagens Previstas do intervalo detectadas `
+        + `no sistema real-time: ${razaoGeral.toFixed( 2 )}%\n\n`;
       viagensPrevistasSemHistoricoComAtividadeDetectada.forEach( element => {
         avisaNoTopico( fila, element )
       } );
