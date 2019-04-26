@@ -33,7 +33,7 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
    */
   intervaloDeTempo = geraHorariosParaBuscaSql();
   logDeExecucao += `Tentou Buscar fatos ocorridos no intervalo:\n`
-    + `<${intervaloDeTempo[ 0 ]}> até <${intervaloDeTempo[ 1 ]}>\n-------------\n`;
+    + `[ ${intervaloDeTempo[ 1 ]} ] até [ ${intervaloDeTempo[ 0 ]} ]\n-------------\n`;
 
   viagensPrevistas = await listaViagensDaHora( pool, intervaloDeTempo );
   if ( viagensPrevistas != undefined && viagensPrevistas.length > 0 ) {
