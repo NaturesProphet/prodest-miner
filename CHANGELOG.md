@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.3](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.2...v0.5.3) (2019-04-26)
+
+
+### Bug Fixes
+
+* **subRotina:** subrotina de detecção de viagens agora está super phoda! ([a392f90](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/a392f90))
+
+
+
 ## [0.5.2](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.1...v0.5.2) (2019-04-25)
 
 
