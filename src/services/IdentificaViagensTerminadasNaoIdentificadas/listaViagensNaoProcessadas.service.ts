@@ -5,7 +5,7 @@ if ( process.env.NODE_ENV != 'production' ) {
 import { ConnectionPool } from 'mssql';
 
 
-export async function listaViagensNaoProcessadas
+export async function listaViagensPrevistasSemHistorico
   ( pool: ConnectionPool, viagensPrevistas: number[], historicosFeitos: number[] ): Promise<any> {
   if ( viagensPrevistas.length > 0 && historicosFeitos.length > 0 ) {
 
@@ -22,18 +22,18 @@ export async function listaViagensNaoProcessadas
         } );
         return ids;
       } else {
-        console.log( `[ listaViagensNaoProcessadas ] A busca não achou nada.`
+        console.log( `[ listaViagensPrevistasSemHistorico ] A busca não achou nada.`
           + `\nQuery: ${Query}\n\nResult:${result}\n` );
         return [];
       }
     } catch ( err ) {
-      let msg = `[ listaViagensNaoProcessadas ] Erro ao buscar as viagens não processadas.\n`
+      let msg = `[ listaViagensPrevistasSemHistorico ] Erro ao buscar as viagens não processadas.\n`
         + `Erro: ${err.message}\n`
         + `Query: ${Query}\n--------------------------\n`;
       console.log( msg );
     }
   } else {
-    console.log( `[ listaViagensNaoProcessadas ] Listas de IDs vazios informadas\n`
+    console.log( `[ listaViagensPrevistasSemHistorico ] Listas de IDs vazios informadas\n`
       + `lista viagens previstas: ${viagensPrevistas.length} viagens\n`
       + `lista de historicos feitos: ${historicosFeitos.length} históricos` );
   }

@@ -6,17 +6,19 @@ import { ConnectionPool } from 'mssql';
 import { geraHorariosParaBuscaSql } from '../tempo/margensHorario.service';
 import { listaViagensDaHora } from './listaViagensDaHora.service';
 import { listaHistoricosDaUltimaHora } from './listaHistoricosDaUltimaHora.service';
-import { listaViagensNaoProcessadas } from './listaViagensNaoProcessadas.service';
+import { listaViagensPrevistasSemHistorico } from './listaViagensNaoProcessadas.service';
 import { avisaNoTopico } from '../../services/rabbitmq/avisaNoTopico.service';
 import { Channel } from 'amqplib';
 import { notifySlack } from '../../services/slack/notifications';
+import { SelecionaAsQueTemRegistroDeAtividade } from './SelecionaAsQueTemRegistroDeAtividade.service';
 
 export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fila: Channel ) {
 
   let intervaloDeTempo: string[];
   let viagensPrevistas: number[];
-  let viagensComHistorico: number[];
-  let viagensPrevistasNaoProcessadas: number[];
+  let viagensPrevistasComHistorico: number[];
+  let viagensPrevistasSemHistorico: number[];
+  let viagensPrevistasSemHistoricoComAtividadeDetectada: number[];
   let inicio: Date = new Date();
   inicio.setUTCHours( inicio.getUTCHours() - 3 )
   let logDeExecucao: string = '**********************************************************\n' +
@@ -48,11 +50,11 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
    * devidamente processados e salvos no banco de historicos reais ?
    */
   if ( viagensPrevistas != undefined && viagensPrevistas.length > 0 ) {
-    viagensComHistorico = await listaHistoricosDaUltimaHora( pool, intervaloDeTempo );
-    if ( viagensComHistorico.length > 0 ) {
-      logDeExecucao += `Desse total, a subrotina detectou que ${viagensComHistorico.length} `
+    viagensPrevistasComHistorico = await listaHistoricosDaUltimaHora( pool, intervaloDeTempo );
+    if ( viagensPrevistasComHistorico.length > 0 ) {
+      logDeExecucao += `Desse total, a subrotina detectou que ${viagensPrevistasComHistorico.length} `
         + `dessas viagens foram realmente realizadas, com os respectivos veiculos planejados.\n`;
-      let ratio: number = ( viagensComHistorico.length / viagensPrevistas.length ) * 100;
+      let ratio: number = ( viagensPrevistasComHistorico.length / viagensPrevistas.length ) * 100;
       logDeExecucao += `Os dados sugeriram que ${ratio.toFixed( 2 )}% das viagens planejadas `
         + `neste intervalo aconteceram próximo do esperado na programação de viagens `
         + `que foi recebida da GeoControl.\n`
@@ -72,21 +74,59 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
    */
   if ( viagensPrevistas != undefined && viagensPrevistas.length > 0 ) {
 
-    if ( viagensComHistorico != undefined && viagensComHistorico.length > 0 ) {
+    if ( viagensPrevistasComHistorico != undefined && viagensPrevistasComHistorico.length > 0 ) {
 
-      viagensPrevistasNaoProcessadas = await listaViagensNaoProcessadas
-        ( pool, viagensPrevistas, viagensComHistorico );
+      viagensPrevistasSemHistorico = await listaViagensPrevistasSemHistorico
+        ( pool, viagensPrevistas, viagensPrevistasComHistorico );
 
     } else {
-      viagensPrevistasNaoProcessadas = viagensPrevistas;
+      viagensPrevistasSemHistorico = viagensPrevistas;
     }
-    viagensPrevistasNaoProcessadas.forEach( element => {
-      avisaNoTopico( fila, element );
-    } );
-    logDeExecucao += `\n\nUm total de ${viagensPrevistasNaoProcessadas.length} viagens `
-      + `não possuiam um histórico identificado automaticamente, e foram entregues `
-      + `à fila de processamento para serem processadas pelo serviço de histórico.\n`
+
+    logDeExecucao += `\nUm total de ${viagensPrevistasSemHistorico.length} viagens `
+      + `não possuiam Historico Real processado.\n`;
   }
+
+
+
+  /**
+   * pergunta 4: Quais dessas viagens sem Historico Real gerado tem algum 
+   * registro de atividade no historico bruto ?
+   */
+  if ( viagensPrevistasSemHistorico != undefined && viagensPrevistasSemHistorico.length > 0 ) {
+
+
+    viagensPrevistasSemHistoricoComAtividadeDetectada =
+      await SelecionaAsQueTemRegistroDeAtividade( pool, viagensPrevistasSemHistorico );
+    if (
+      viagensPrevistasSemHistoricoComAtividadeDetectada != undefined &&
+      viagensPrevistasSemHistoricoComAtividadeDetectada.length > 0 ) {
+      logDeExecucao += `Das ${viagensPrevistasSemHistorico.length} viagens previstas `
+        + `que não tiveram histórico gerado automaticamente, foram encontrados `
+        + `${viagensPrevistasSemHistoricoComAtividadeDetectada.length} registros `
+        + `de atividade recente dentro do intervalo procurado nos dados de histórico bruto.\n`;
+      let ratioParcial = ( viagensPrevistasSemHistoricoComAtividadeDetectada.length /
+        viagensPrevistasSemHistorico.length ) * 100;
+      logDeExecucao += `Isso significa que ${ratioParcial.toFixed( 2 )}% das `
+        + `${viagensPrevistasSemHistorico.length} viagens sem histórico ainda podem ter `
+        + `seus Históricos gerados parcialmente e portanto foram entregues à fila.\n`;
+      let total = viagensPrevistasComHistorico.length
+        + viagensPrevistasSemHistoricoComAtividadeDetectada.length;
+      let razaoGeral = ( total / viagensPrevistas.length ) * 100;
+      logDeExecucao += `\n\nRESUMO DA EXECUÇÃO:\n`
+        + `Viagens totais previstas: ${viagensPrevistas.length}\n`
+        + `Viagens COM Histórico processados após a subrotina: ${total}\n`
+        + `Taxa total de sucesso teórico no intervalo: ${razaoGeral.toFixed( 2 )}%\n\n`;
+      viagensPrevistasSemHistoricoComAtividadeDetectada.forEach( element => {
+        avisaNoTopico( fila, element )
+      } );
+    }
+  }
+
+
+
+
+
   let fim = new Date();
   fim.setUTCHours( fim.getUTCHours() - 3 );
   logDeExecucao += `\n[ ${fim.toISOString()} ]\nSub-rotina de detecção de viagens `
