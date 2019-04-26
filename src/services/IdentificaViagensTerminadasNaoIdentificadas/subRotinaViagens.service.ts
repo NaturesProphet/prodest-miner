@@ -53,12 +53,7 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
     viagensPrevistasComHistorico = await listaHistoricosDaUltimaHora( pool, intervaloDeTempo );
     if ( viagensPrevistasComHistorico.length > 0 ) {
       logDeExecucao += `Desse total, a subrotina detectou que ${viagensPrevistasComHistorico.length} `
-        + `dessas viagens foram realmente realizadas, com os respectivos veiculos planejados.\n`;
-      let ratio: number = ( viagensPrevistasComHistorico.length / viagensPrevistas.length ) * 100;
-      logDeExecucao += `Os dados sugeriram que ${ratio.toFixed( 2 )}% das viagens planejadas `
-        + `neste intervalo aconteceram próximo do esperado na programação de viagens `
-        + `que foi recebida da GeoControl.\n`
-        + `Nota: Alterações de veículos não previstos para as viagens não entram nessa conta.\n`;
+        + `dessas viagens já tiveram o Histórico gerado automaticamente. `
     } else {
       logDeExecucao += `Nenhuma dessas viagens foi encontrada dentro do histórico real...\n`
     }
@@ -119,7 +114,10 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
         + `${viagensPrevistasComHistorico.length}\n`
         + `Viagens COM Histórico Real processados após a subrotina (TOTAL): ${total}\n`
         + `Total de Viagens Previstas do intervalo detectadas `
-        + `no sistema real-time: ${razaoGeral.toFixed( 2 )}%\n\n`;
+        + `no sistema real-time conforme planejamento de viagens que chegou `
+        + `da Geocontrol: ${razaoGeral.toFixed( 2 )}%\n`
+        + `[!] As viagens que foram feitas com veículos diferentes do planejado não `
+        + `entraram nesssas contas\n\n`;
       viagensPrevistasSemHistoricoComAtividadeDetectada.forEach( element => {
         avisaNoTopico( fila, element )
       } );
