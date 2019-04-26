@@ -92,5 +92,5 @@ export async function processaViagensNaoIdentificadas ( pool: ConnectionPool, fi
   logDeExecucao += `\n[ ${fim.toISOString()} ]\nSub-rotina de detecção de viagens `
     + `terminou de processar o intervalo atual de tempo.\n`
     + `-------------------------------------------------------------------------------`;
-  notifySlack( logDeExecucao, 'nota' );
+  notifySlack( logDeExecucao, 'Nota' );
 }
