@@ -23,10 +23,8 @@ import { debug } from './services/utils/console.service';
 import { AviseQueEsseOnibusJaPassouAqui } from './services/redis/onibusPassando.service';
 import { onibusJaPassou } from './services/redis/onibusJaPassou.service';
 import { getPontoCerto } from './services/mssql/getPontoCerto.service';
-import { listaViagensDaHora } from './services/IdentificaViagensTerminadasNaoIdentificadas/listaViagensDaHora.service';
-import { filtraPorViagensRealizadas } from './services/IdentificaViagensTerminadasNaoIdentificadas/filtraPorViagensRealizadas.service';
-import { filtraPorViagensNaoProcessadas } from './services/IdentificaViagensTerminadasNaoIdentificadas/filtraPorViagensNaoProcessadas.service';
-import { notifySlack } from 'services/utils/notifications';
+import { processaViagensNaoIdentificadas } from './services/IdentificaViagensTerminadasNaoIdentificadas/subRotinaViagens.service';
+import { avisaNoTopico } from './services/rabbitmq/avisaNoTopico.service';
 
 
 async function main () {
@@ -37,7 +35,7 @@ async function main () {
     await sendPontosToRedis( SqlConnection, redisConnection );
     const consumerChannel: Channel = await getConsumerChannel();
     const publishChannel: Channel = await getPublishChannel();
-    let bufferDeViagensJaProcessadas: number[] = new Array();
+
 
 
     //--------------------------------------------
@@ -47,61 +45,7 @@ async function main () {
      * após a identificação, elas são entregues a fila.
      */
     setInterval( async () => {
-        let now = new Date();
-        let announce = `\n\n***************************************************\n[ MINER ]\n`
-            + `[ ${now} ]\nSub-rotina de identificação de viagens sem ponto final `
-            + `iniciado...`;
-        console.log( announce );
-        await notifySlack( announce, 'Nota' );
-        let result: string = '';
-
-        if ( bufferDeViagensJaProcessadas.length > 0 ) {
-            let ultimasViagensPrevistas = await listaViagensDaHora( SqlConnection );
-
-            if ( ultimasViagensPrevistas ) {
-                result += `Mensagens previstas para terem terminado na ultima hora: `
-                    + `${ultimasViagensPrevistas.length}\n`;
-
-                let viagensRecentesRealizadas = await filtraPorViagensRealizadas
-                    ( SqlConnection, ultimasViagensPrevistas );
-
-
-                if ( viagensRecentesRealizadas ) {
-                    result += `Viagens que chegaram ao ponto final (identificadas no miner): `
-                        + `${viagensRecentesRealizadas.length}\n`;
-
-                    let viagensNaoProcessadas = await filtraPorViagensNaoProcessadas
-                        ( SqlConnection, bufferDeViagensJaProcessadas, viagensRecentesRealizadas );
-
-                    if ( viagensNaoProcessadas ) {
-                        result += `Viagens ativas detectadas no miner com ponto final não identificado: `
-                            + `${viagensRecentesRealizadas.length}\n`;
-                        viagensNaoProcessadas.forEach( viagem => {
-                            publishChannel.publish(
-                                rabbitConf.rabbitTopicName,
-                                rabbitConf.rabbitPublishRoutingKey,
-                                new Buffer( JSON.stringify( { viagem: viagem } ) ),
-                                { persistent: false }
-                            );
-                        } );
-                        result += `Viagens não processadas descobertas e entregues à fila: `
-                            + `${viagensNaoProcessadas.length}\n`;
-                        bufferDeViagensJaProcessadas = new Array(); // limpa o buffer
-                    } else {
-                        result += `[ ERRO ] Não achou viagens não processadas.\n`;
-                    }
-                } else {
-                    result += `[ ERRO ] Não encontrou viagens na tabela do miner. \n`;
-                }
-            } else {
-                result += `[ ERRO ] Não achou as viagens previstas..`
-                    + `o banco está carregado com as viagens de hoje?\n`;
-            }
-        } else {
-            result += `Nenhuma viagem finalizada foi detectada na ultima hora.\n`;
-        }
-        result += `\nSub-rotina de identificação de viagens concluída para este horario.\n--------------`;
-        await notifySlack( result, 'Nota' );
+        await processaViagensNaoIdentificadas( SqlConnection, publishChannel );
     }, 3600000 );
     //----------------------------------------------
 
@@ -206,13 +150,7 @@ async function main () {
                                     await salvaHistoria( SqlConnection, historia );
 
                                     if ( historia.pontoFinal == 1 ) {
-                                        bufferDeViagensJaProcessadas.push( historia.viagemId );
-                                        publishChannel.publish(
-                                            rabbitConf.rabbitTopicName,
-                                            rabbitConf.rabbitPublishRoutingKey,
-                                            new Buffer( JSON.stringify( { viagem: historia.viagemId } ) ),
-                                            { persistent: false }
-                                        );
+                                        avisaNoTopico( publishChannel, historia.viagemId );
                                     }
                                 }
                             } else {

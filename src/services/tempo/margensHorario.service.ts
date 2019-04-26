@@ -35,3 +35,19 @@ export function esticaMargemHorario ( margem: string[], minutos: number ): strin
     let margemReduzida = [ saidaDate.toISOString(), chegadaDate.toISOString() ];
     return margemReduzida;
 }
+
+
+export function geraHorariosParaBuscaSql (): string[] {
+
+    let horaAgora = new Date();
+    horaAgora.setUTCHours( horaAgora.getUTCHours() - 3 );
+    horaAgora.setUTCMinutes( horaAgora.getUTCMinutes() - 30 );
+
+    let agoraPoucoAMeiaHoraAtras: string = horaAgora.toISOString();
+
+    horaAgora.setUTCHours( horaAgora.getUTCHours() - 1 );
+
+    let agoraPoucoAumaHoraEmeiaAtras = horaAgora.toISOString();
+
+    return [ agoraPoucoAMeiaHoraAtras, agoraPoucoAumaHoraEmeiaAtras ];
+}
