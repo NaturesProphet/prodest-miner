@@ -56,7 +56,6 @@ async function main () {
     console.log( '\n-----------------------------------------------------------' );
     console.log( `[ ${new Date().toString()} ]\nO Miner iniciou com sucesso!` );
     console.log( '-----------------------------------------------------------\n\n' );
-    await processaViagensTerminadas( SqlConnection, publishChannel );
     await consumerChannel.consume( rabbitConf.rabbitConsumerQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
         debug( 1, `Veiculo recebido: ${JSON.stringify( veiculo )}` );
