@@ -67,5 +67,5 @@ export async function processaViagensTerminadas ( pool: ConnectionPool, fila: Ch
   }
 
   logDeExecucao += `\n-------------------------------------------------------------------------------\n\n`;
-  notifySlack( logDeExecucao, 'Nota' );
+  notifySlack( logDeExecucao, 'Miner' );
 }

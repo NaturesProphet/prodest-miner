@@ -29,6 +29,14 @@ export async function notifySlack ( message: string, name: string ): Promise<any
             icon = ":fuckthatshit:";
             console.log( `[  Nota  ] ${message}` );
             break;
+        case "Build":
+            icon = ":build:";
+            console.log( `[  Gerador  ] ${message}` );
+            break;
+        case "Miner":
+            icon = ":miner:";
+            console.log( `[  Miner  ] ${message}` );
+            break;
     }
 
     const payload = {
