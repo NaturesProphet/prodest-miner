@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.12](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.11...v0.5.12) (2019-05-02)
+
+
+### Bug Fixes
+
+* **ratio:** porcentagem em base 100 ([0387fb2](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/0387fb2))
+
+
+
 ## [0.5.11](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.10...v0.5.11) (2019-05-02)
 
 
