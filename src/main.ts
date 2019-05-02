@@ -23,8 +23,7 @@ import { debug } from './services/utils/console.service';
 import { AviseQueEsseOnibusJaPassouAqui } from './services/redis/onibusPassando.service';
 import { onibusJaPassou } from './services/redis/onibusJaPassou.service';
 import { getPontoCerto } from './services/mssql/getPontoCerto.service';
-import { processaViagensNaoIdentificadas } from './services/IdentificaViagensTerminadasNaoIdentificadas/subRotinaViagens.service';
-import { avisaNoTopico } from './services/rabbitmq/avisaNoTopico.service';
+import { processaViagensTerminadas } from './services/processaViagensTerminadas/main';
 
 
 async function main () {
@@ -40,15 +39,16 @@ async function main () {
 
     //--------------------------------------------
     /**
-     * Sub-rotina que verifica quais foram as ultimas viagens
-     * terminadas que não tiveram seus pontos finais identificados.
-     * após a identificação, elas são entregues a fila.
+     * Sub-rotina que vasculha os dados no historico bruto
+     * em busca das viagens que aconteceram na ultima hora,
+     * e então entrega no tópico os ids dessas viagens para
+     * serem processadas do outro lado pelo consumidor.
      */
+    const intervalo: number = 3600000;
     setInterval( async () => {
-        await processaViagensNaoIdentificadas( SqlConnection, publishChannel );
-    }, 3600000 );
+        await processaViagensTerminadas( SqlConnection, publishChannel );
+    }, intervalo );
     //----------------------------------------------
-
 
 
 
@@ -56,6 +56,7 @@ async function main () {
     console.log( '\n-----------------------------------------------------------' );
     console.log( `[ ${new Date().toString()} ]\nO Miner iniciou com sucesso!` );
     console.log( '-----------------------------------------------------------\n\n' );
+    await processaViagensTerminadas( SqlConnection, publishChannel );
     await consumerChannel.consume( rabbitConf.rabbitConsumerQueueName, async ( msg ) => {
         let veiculo = JSON.parse( msg.content.toString() );
         debug( 1, `Veiculo recebido: ${JSON.stringify( veiculo )}` );

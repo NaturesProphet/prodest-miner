@@ -10,7 +10,7 @@ export async function SelecionaAsQueTemRegistroDeAtividade
   if ( viagensPrevistas.length > 0 ) {
 
     let Query = `SELECT DISTINCT viagem_id FROM veiculo_ponto_viagem_historico_bruto WHERE `
-      + `viagem_id IN ( ${viagensPrevistas} ) `
+      + `viagem_id IN ( ${viagensPrevistas} ) `;
 
     try {
       let result = await pool.request().query( Query );
