@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.13](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.12...v0.5.13) (2019-05-02)
+
+
+
 ## [0.5.12](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.11...v0.5.12) (2019-05-02)
 
 
