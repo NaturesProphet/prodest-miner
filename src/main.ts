@@ -149,9 +149,6 @@ async function main () {
                                     debug( 7, `Historia: ${JSON.stringify( historia )}` );
                                     await salvaHistoria( SqlConnection, historia );
 
-                                    if ( historia.pontoFinal == 1 ) {
-                                        avisaNoTopico( publishChannel, historia.viagemId );
-                                    }
                                 }
                             } else {
                                 debug( 5, `Onibus ${veiculo.ROTULO} já passou no ponto ${pontoValido.ponto} `
