@@ -48,7 +48,7 @@ export async function processaViagensTerminadas ( pool: ConnectionPool, fila: Ch
 
     if ( viagensDetectadas != undefined && viagensDetectadas.length > 0 ) {
       logDeExecucao += `Viagens previstas detectadas em atividade no realtime: ${viagensDetectadas.length}\n`;
-      let ratio: number = ( viagensDetectadas.length / viagensPrevistas.length );
+      let ratio: number = ( viagensDetectadas.length / viagensPrevistas.length ) * 100;
       logDeExecucao += `-------------------------------------------------------------------------------\n`;
       logDeExecucao += `Total de viagens que aconteceram como o planejado: ${ratio.toFixed( 2 )}%`;
     }
