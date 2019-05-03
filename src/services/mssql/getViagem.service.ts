@@ -6,7 +6,6 @@ import { ConnectionPool } from 'mssql';
 import { ViagemQueryObject } from '../../DTOs/viagemQuery.interface';
 import { reduzMargemHorario, esticaMargemHorario } from '../../services/tempo/margensHorario.service';
 import { ControleRecursao } from 'DTOs/controleRecursao.interface';
-import { debug } from 'services/utils/console.service';
 
 /**
  * Esta função pesquisa as viagens compatíveis com os parâmetros informados até achar a viagem correta.
@@ -45,7 +44,6 @@ export async function getViagem (
 
         // veio só uma viagem (então é a certa)
         if ( result.recordset.length == 1 ) {
-            debug( 10, `Recursões: ${JSON.stringify( controleRecursao )}\n------------------` );
             return result.recordset[ 0 ];
         }
 
