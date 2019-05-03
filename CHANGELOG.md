@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.5.15](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.14...v0.5.15) (2019-05-03)
+
+
+### Bug Fixes
+
+* **getViagem:** mensagem de debug removida ([20b6755](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/commit/20b6755))
+
+
+
 ## [0.5.14](https://gitlab.es.gov.br/espm/Transcol-Online/Realtime/miner/compare/v0.5.13...v0.5.14) (2019-05-03)
 
 
