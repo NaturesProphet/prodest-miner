@@ -23,6 +23,7 @@ import { AviseQueEsseOnibusJaPassouAqui } from './services/redis/onibusPassando.
 import { onibusJaPassou } from './services/redis/onibusJaPassou.service';
 import { getPontoCerto } from './services/mssql/getPontoCerto.service';
 import { processaViagensTerminadas } from './services/processaViagensTerminadas/main';
+import { sendAzimutesToRedis } from 'services/redis/sendAzimutesToRedis.service';
 
 
 async function main () {
@@ -31,6 +32,7 @@ async function main () {
 
     const redisConnection = IniciaConexaoRedis();
     await sendPontosToRedis( SqlConnection, redisConnection );
+    await sendAzimutesToRedis( SqlConnection, redisConnection );
     const consumerChannel: Channel = await getConsumerChannel();
     const publishChannel: Channel = await getPublishChannel();
 
@@ -77,7 +79,6 @@ async function main () {
             /** Busca no redis quais são os pontos próximos
              * à coordenada atual onde o veículo está passando. (safe) */
             let PontosProximos: any[] = await getPontosProximos( redisConnection, LongLat );
-
 
             /**
              * Filtra o processamento, deixando o fluxo seguir apenas se o veículo
@@ -140,6 +141,14 @@ async function main () {
 
                     // continua o fluxo se a viagem correta foi encontrada. (safe)
                     if ( viagemDaVez != null ) {
+                        // let x = {
+                        //     pontos: PontosProximos,
+                        //     carro: veiculo.ROTULO,
+                        //     curso: veiculo.CURSO,
+                        //     viagem: viagemDaVez.id,
+                        //     itinerario: viagemDaVez.itinerario_id
+                        // }
+                        // console.log( x );
 
                         /**
                          * ESTE É O PONTO CRÍTICO DO PROJETO!
@@ -149,11 +158,14 @@ async function main () {
                          * (CRÍTICO)
                          */
                         let pontoValido: PontoXOrdem = await
-                            getPontoCerto( SqlConnection, viagemDaVez.itinerario_id, PontosProximos );
+                            getPontoCerto(
+                                SqlConnection, viagemDaVez.itinerario_id,
+                                viagemDaVez.id, veiculo.CURSO,
+                                PontosProximos, redisConnection );
 
 
                         // caso o ponto seja válido para a viagem, segue o fluxo. (safe)
-                        if ( pontoValido != undefined ) {
+                        if ( pontoValido != null ) {
 
                             /**
                              * Verifica se esse veículo já passou por este ponto válido

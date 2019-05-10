@@ -36,7 +36,7 @@ export async function getViagem (
     }
 
     try {
-        let queryViagem = `SELECT viagem.id, viagem.itinerario_id, horadasaida, horadachegada FROM viagem `
+        let queryViagem = `SELECT id, itinerario_id, horadasaida, horadachegada FROM viagem `
             + `where veiculo = '${dados.veiculo}' and horadachegada < '${dados.horaChegada}' `
             + `and horadasaida BETWEEN '${dados.horaSaida}' and '${dados.horaAgora}' `;
 
