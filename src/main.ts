@@ -233,6 +233,24 @@ async function main () {
 
                                 }
                             }
+                        } else {
+
+                            let historia: VeiculoXPonto = {
+                                rotulo: veiculoDaVez,
+                                datahoraMillis: veiculo.DATAHORA,
+                                datahoraLegivel: new Date( veiculo.DATAHORA ).toISOString(),
+                                velocidade: veiculo.VELOCIDADE,
+                                ignicao: veiculo.IGNICAO,
+                                pontoId: null,
+                                itinerarioId: viagemDaVez.itinerario_id,
+                                viagemId: viagemDaVez.id,
+                                pontoInicial: null,
+                                pontoFinal: null,
+                                sequencia: null
+                            }
+
+                            // salva a história. (safe)
+                            salvaHistoria( SqlConnection, historia );
                         }
                     }
                 }
