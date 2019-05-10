@@ -244,8 +244,8 @@ async function main () {
                                 pontoId: null,
                                 itinerarioId: viagemDaVez.itinerario_id,
                                 viagemId: viagemDaVez.id,
-                                pontoInicial: null,
-                                pontoFinal: null,
+                                pontoInicial: 0,
+                                pontoFinal: 0,
                                 sequencia: null
                             }
 
