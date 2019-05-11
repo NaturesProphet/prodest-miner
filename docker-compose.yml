@@ -1,0 +1,17 @@
+# docker-compose.yml
+version: "3"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5678:5678"
+      - "8080:15672"
+    
+  Logstash-Rabbit:
+    image: registry.es.gov.br/espm/transcol-online/realtime/logstash-rabbit:latest
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBIT_EXCHANGE_NAME: realtime
+      RABBIT_EXCHANGE_TYPE: topic
+      RABBIT_HOST: rabbitmq
